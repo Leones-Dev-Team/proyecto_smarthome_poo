@@ -1,0 +1,40 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# --- Entornos virtuales ---
+venv/
+.venv/
+env/
+.env/
+
+# --- Configuración local / credenciales ---
+*.env
+*.ini
+*.cfg
+*.local
+
+# --- Logs y temporales ---
+*.log
+*.tmp
+*.bak
+
+# --- VS Code ---
+.vscode/
+.history/
+
+# --- Visual Studio Community ---
+.vs/
+
+
+# --- Archivos de pruebas ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Archivos del sistema (Windows) ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
