@@ -38,3 +38,6 @@ htmlcov/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+.qodo
+.qodo/
