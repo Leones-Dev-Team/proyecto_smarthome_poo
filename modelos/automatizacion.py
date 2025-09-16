@@ -6,8 +6,8 @@ class Automatizacion:
 
     def activar(self) -> int:
         """
-        Activa la automatizacion apagando todos los dispositivos
-        no esenciales que esten encendidos.
+        Activa la automatización apagando todos los dispositivos
+        no esenciales que estén encendidos.
         Devuelve la cantidad de dispositivos apagados.
         """
         dispositivos_apagados = 0
