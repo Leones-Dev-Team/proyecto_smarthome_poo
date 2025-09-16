@@ -47,8 +47,8 @@ class Usuario:
         self._clave = nueva_clave
 
     def registrar_actividad(self, actividad: str):
-        """Agrega una nueva actividad al registro."""
-        self._registro_actividad += f"\n{actividad}"
+        """Guarda solo la última actividad en el registro."""
+        self._registro_actividad = actividad
 
     @property
     def rol(self) -> str:

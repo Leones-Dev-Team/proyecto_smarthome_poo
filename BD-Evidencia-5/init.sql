@@ -88,6 +88,3 @@ INSERT INTO dispositivos_hogar VALUES
 (108, 8, 'Dormitorio', '10:35:00', 'Aire acondicionado', 'Electrodomestico', 'Daikin', 'encendido', 1500.0, 4),
 (109, 9, 'Baño', '10:40:00', 'Secador', 'Electrodomestico', 'Philips', 'apagado', 60.0, 5),
 (110, 10, 'Living', '10:45:00', 'Lámpara', 'Luz', 'Philips', 'encendido', 15.0, 5);
-
--- link al proyecto completo en onecompiler
--- https://onecompiler.com/mysql/43wtdu5se
