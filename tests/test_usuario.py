@@ -1,53 +1,72 @@
 import pytest
 from modelos.usuario import Usuario
+from modelos.perfil import Perfil
+from modelos.dispositivo_hogar import DispositivoHogar
+
 
 @pytest.fixture
 def usuario():
-    return Usuario(
-        id_usuario=1,
-        nombre="Jonny",
-        clave="1234",
-        rol="admin",
-        tiempo_de_conexion="2h",
-        edad=30,
-        mail="jonny@mail.com",
-        telefono="123456789",
-        registro_actividad="Inicio de sesión",
-        id_hogar=101
-    )
+    perfil = Perfil(nombre="Jonny", mail="jonny@mail.com",
+                    telefono="123456789")
+    return Usuario(id_usuario=1, clave="1234", rol="admin", perfil=perfil)
+
+
+def test_id_usuario(usuario):
+    assert usuario.id_usuario == 1
+
+
+def test_verificar_clave(usuario):
+    assert usuario.verificar_clave("1234") is True
+    assert usuario.verificar_clave("abcd") is False
+
+
+def test_cambiar_rol_valido(usuario):
+    usuario.rol = "usuario"
+    assert usuario.rol == "usuario"
+
+
+def test_cambiar_rol_invalido(usuario):
+    with pytest.raises(ValueError, match="El rol no puede estar vacío"):
+        usuario.rol = ""
+
+
+def test_cambiar_clave_valida(usuario):
+    usuario.cambiar_clave("abcd")
+    assert usuario.verificar_clave("abcd") is True
+    # además registra actividad en el perfil
+    assert any(
+        "Cambio de clave" in act for act in usuario.perfil.registro_actividad)
+
+
+def test_cambiar_clave_invalida(usuario):
+    with pytest.raises(ValueError, match="La nueva clave no puede estar vacía"):
+        usuario.cambiar_clave("")
+
 
 def test_mostrar_info(usuario):
     info = usuario.mostrar_info()
+    assert "Usuario 1" in info
+    assert "(admin)" in info
     assert "Jonny" in info
-    assert "admin" in info
 
-def test_id_hogar(usuario):
-    assert usuario._id_hogar == 101
+
+def test_agregar_y_quitar_dispositivo(usuario):
+    dispositivo = DispositivoHogar(
+        id_dispositivo="d1", nombre="Lámpara", tipo="luz")
+    usuario.agregar_dispositivo(dispositivo)
+    assert len(usuario.dispositivos_hogar) == 1
+    assert dispositivo in usuario.dispositivos_hogar
+
+    usuario.quitar_dispositivo(dispositivo)
+    assert len(usuario.dispositivos_hogar) == 0
+    # actividad registrada
+    assert any(
+        "Quitó dispositivo Lámpara" in act for act in usuario.perfil.registro_actividad)
 
 def test_verificar_clave(usuario):
     assert usuario.verificar_clave("1234")
     assert not usuario.verificar_clave("abcd")
 
-def test_cambiar_rol(usuario):
-    usuario.cambiar_rol("usuario")
-    assert usuario.rol == "usuario"
-
-def test_actualizar_datos(usuario):
-    usuario.actualizar_datos(nombre="Jonathan", mail="jonathan@mail.com")
-    info = usuario.mostrar_info()
-    assert "Jonathan" in info
-    assert "jonathan@mail.com" in info
-
-def test_cambiar_clave(usuario):
-    usuario.cambiar_clave("abcd")
-    assert usuario.verificar_clave("abcd")
-
-def test_registrar_actividad(usuario):
-    usuario.registrar_actividad("Configuró dispositivo")
-    assert usuario._registro_actividad == "Configuró dispositivo"
-
-def test_dispositivos_control(usuario):
-    usuario.dispositivos_control.append("Control 1")
-    assert "Control 1" in usuario.dispositivos_control
-    usuario.dispositivos_hogar.append("Dispositivo Hogar 1")
-    assert "Dispositivo Hogar 1" in usuario.dispositivos_hogar
+def test_perfil_acceso(usuario):
+    assert isinstance(usuario.perfil, Perfil)
+    assert usuario.perfil.nombre == "Jonny"
