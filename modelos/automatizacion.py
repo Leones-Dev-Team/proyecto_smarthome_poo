@@ -1,8 +1,30 @@
-# automatizacion.py
+# modelos/automatizacion.py
+from __future__ import annotations
+from modelos.dispositivo_hogar import DispositivoHogar
+from typing import List
+
+
 class Automatizacion:
-    def __init__(self, nombre: str, dispositivos: list):
+    """
+    Representa una automatización de ahorro energético.
+    Apaga todos los dispositivos NO esenciales que estén encendidos.
+    Relación de AGREGACIÓN: los dispositivos existen independientemente.
+    """
+
+    def __init__(self, nombre: str, dispositivos: List[DispositivoHogar]):
+        if not nombre:
+            raise ValueError(
+                "El nombre de la automatización no puede estar vacío.")
         self._nombre = nombre
         self._dispositivos = dispositivos
+
+    @property
+    def nombre(self) -> str:
+        return self._nombre
+
+    @property
+    def dispositivos(self) -> tuple[DispositivoHogar, ...]:
+        return tuple(self._dispositivos)
 
     def activar(self) -> int:
         """
@@ -12,7 +34,10 @@ class Automatizacion:
         """
         dispositivos_apagados = 0
         for dispositivo in self._dispositivos:
-            if not dispositivo.es_esencial() and dispositivo.estado_dispositivo == "encendido":
+            if not dispositivo.es_esencial() and dispositivo.estado_dispositivo:
                 dispositivo.apagar()
                 dispositivos_apagados += 1
         return dispositivos_apagados
+
+    def __repr__(self):
+        return f"Automatizacion({self._nombre}, dispositivos={len(self._dispositivos)})"

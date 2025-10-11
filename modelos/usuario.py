@@ -1,56 +1,93 @@
-# usuario.py
+# modelos/usuario.py
+from __future__ import annotations
+from modelos.perfil import Perfil
+from modelos.dispositivo_hogar import DispositivoHogar
+
+
 class Usuario:
-    def __init__(self, id_usuario: int, nombre: str, clave: str, rol: str,
-                 tiempo_de_conexion: str, edad: int, mail: str, telefono: str,
-                 registro_actividad: str, id_hogar: int = None):
+    """
+    Clase que representa un usuario del sistema SmartHome.
+    Aplica SRP: solo maneja credenciales y rol. 
+    Delegación a Perfil para datos personales y actividades.
+    """
+
+    def __init__(self, id_usuario, clave, rol, perfil=None):
+        # Validaciones básicas
+        if id_usuario <= 0:
+            raise ValueError("El ID de usuario debe ser un número positivo.")
+        if clave == "":
+            raise ValueError("La clave no puede estar vacía.")
+        if rol == "":
+            raise ValueError("El rol no puede estar vacío.")
+        
         self._id_usuario = id_usuario
-        self._nombre = nombre
         self._clave = clave
         self._rol = rol
-        self._tiempo_de_conexion = tiempo_de_conexion
-        self._edad = edad
-        self._mail = mail
-        self._telefono = telefono
-        self._registro_actividad = registro_actividad
-        self._id_hogar = id_hogar
-        self.dispositivos_control = []
-        self.dispositivos_hogar = []
+        if perfil is None:
+            self._perfil = Perfil("Sin nombre", "sin@mail.com")
+        else:
+            self._perfil = perfil
+        self._dispositivos_hogar = []
 
-    def get_id_usuario(self) -> int:
-        """Devuelve el ID del usuario"""
+    # --- Encapsulamiento ---
+    @property
+    def id_usuario(self):
         return self._id_usuario
 
-    def verificar_clave(self, clave: str) -> bool:
-        """Verifica si la clave ingresada coincide con la del usuario"""
-        return self._clave == clave
+    @property
+    def rol(self):
+        return self._rol
 
-    def cambiar_rol(self, nuevo_rol: str):
-        """Cambia el rol del usuario"""
+    @rol.setter
+    def rol(self, nuevo_rol):
+        if nuevo_rol == "":
+            raise ValueError("El rol no puede estar vacío.")
         self._rol = nuevo_rol
 
-    def actualizar_datos(self, nombre: str = None, mail: str = None, telefono: str = None):
-        """Actualiza los datos personales del usuario."""
-        if nombre:
-            self._nombre = nombre
-        if mail:
-            self._mail = mail
-        if telefono:
-            self._telefono = telefono
-
-    def mostrar_info(self) -> str:
-        """Devuelve un resumen de la información del usuario."""
-        return (f"ID: {self._id_usuario}, Nombre: {self._nombre}, Rol: {self._rol}, "
-                f"Edad: {self._edad}, Mail: {self._mail}, Teléfono: {self._telefono}")
-
-    def cambiar_clave(self, nueva_clave: str):
-        """Cambia la clave del usuario."""
-        self._clave = nueva_clave
-
-    def registrar_actividad(self, actividad: str):
-        """Guarda solo la última actividad en el registro."""
-        self._registro_actividad = actividad
+    @property
+    def perfil(self):
+        return self._perfil
 
     @property
-    def rol(self) -> str:
-        """Devuelve el rol del usuario"""
-        return self._rol
+    def dispositivos_hogar(self):
+        # Devolver una copia de la lista para proteger el original
+        return self._dispositivos_hogar.copy()
+
+    # --- Métodos funcionales ---
+    def verificar_clave(self, clave):
+        return clave == self._clave
+
+    def cambiar_clave(self, nueva_clave):
+        if nueva_clave == "":
+            raise ValueError("La nueva clave no puede estar vacía.")
+        self._clave = nueva_clave
+        self._perfil.registrar_actividad("Cambio de clave de usuario")
+
+    def agregar_dispositivo(self, dispositivo):
+        # Verificar que no esté ya en la lista
+        if dispositivo not in self._dispositivos_hogar:
+            self._dispositivos_hogar.append(dispositivo)
+            self._perfil.registrar_actividad("Agregó dispositivo " + dispositivo.nombre)
+
+    def quitar_dispositivo(self, dispositivo):
+        # Verificar que esté en la lista antes de quitarlo
+        if dispositivo in self._dispositivos_hogar:
+            self._dispositivos_hogar.remove(dispositivo)
+            self._perfil.registrar_actividad("Quitó dispositivo " + dispositivo.nombre)
+
+    def buscar_dispositivo_por_id(self, id_dispositivo):
+        """Busca un dispositivo por su ID."""
+        for dispositivo in self._dispositivos_hogar:
+            if dispositivo.id_dispositivo == id_dispositivo:
+                return dispositivo
+        return None
+    
+    def contar_dispositivos(self):
+        """Cuenta cuántos dispositivos tiene el usuario."""
+        return len(self._dispositivos_hogar)
+    
+    def mostrar_info(self):
+        return "Usuario " + str(self._id_usuario) + " (" + self._rol + ") - " + self._perfil.nombre
+
+    def __repr__(self):
+        return "Usuario(id=" + str(self._id_usuario) + ", rol=" + self._rol + ", dispositivos=" + str(len(self._dispositivos_hogar)) + ")"
