@@ -1,47 +1,106 @@
--- Insertar hogares (5 registros)
-INSERT INTO hogares VALUES
-(1, 'Registro inicial hogar 1', '01:20:00', 'Córdoba', 'Casa'),
-(2, 'Registro inicial hogar 2', '00:45:00', 'Buenos Aires', 'Departamento'),
-(3, 'Registro inicial hogar 3', '02:10:00', 'Rosario', 'Casa'),
-(4, 'Registro inicial hogar 4', '00:30:00', 'Mendoza', 'Departamento'),
-(5, 'Registro inicial hogar 5', '01:00:00', 'Salta', 'Casa');
+-- ============================
+-- SECCIÓN: HOGARES
+-- Consultas relacionadas con información de hogares,
+-- ubicaciones, tipos de vivienda y tiempos de conexión.
+-- ============================
 
--- Insertar usuarios (10 registros)
-INSERT INTO usuarios VALUES
-(1, '1234', '00:30:00', 30, 'lucas@example.com', '3511111111', 'Inicio', 1),
-(2, 'abcd', '00:20:00', 25, 'ana@example.com', '3512222222', 'Inicio', 1),
-(3, 'pass', '00:15:00', 40, 'juan@example.com', '3513333333', 'Inicio', 2),
-(4, 'clave', '00:50:00', 35, 'maria@example.com', '3514444444', 'Inicio', 2),
-(5, 'xyz', '00:10:00', 28, 'pedro@example.com', '3515555555', 'Inicio', 3),
-(6, 'pass1', '00:25:00', 32, 'sofia@example.com', '3516666666', 'Inicio', 3),
-(7, 'pass2', '00:40:00', 45, 'diego@example.com', '3517777777', 'Inicio', 4),
-(8, 'pass3', '00:35:00', 29, 'laura@example.com', '3518888888', 'Inicio', 4),
-(9, 'pass4', '00:12:00', 33, 'martin@example.com', '3519999999', 'Inicio', 5),
-(10, 'pass5', '00:55:00', 27, 'carla@example.com', '3510000000', 'Inicio', 5);
-
--- Insertar dispositivos_control (5 registros)
-INSERT INTO dispositivos_control VALUES
-(1, 1, '11:00:00', 2, 1, 0),
-(2, 3, '11:05:00', 3, 0, 1),
-(3, 5, '11:10:00', 1, 2, 0),
-(4, 7, '11:15:00', 4, 1, 0),
-(5, 9, '11:20:00', 2, 2, 1);
-
--- Insertar dispositivos_hogar (10 registros)
-INSERT INTO dispositivos_hogar VALUES
-(101, 1, 'Living', '10:00:00', 'Luz principal', 'Luz', 'Philips', 'encendido', 10.5, 1),
-(102, 2, 'Cocina', '10:05:00', 'Heladera', 'Electrodomestico', 'LG', 'encendido', 150.0, 1),
-(103, 3, 'Dormitorio', '10:10:00', 'Ventilador', 'Electrodomestico', 'Samsung', 'apagado', 50.0, 2),
-(104, 4, 'Baño', '10:15:00', 'Calefón', 'Electrodomestico', 'Rheem', 'encendido', 200.0, 2),
-(105, 5, 'Garage', '10:20:00', 'Cargador EV', 'Electrodomestico', 'Tesla', 'apagado', 3000.0, 3),
-(106, 6, 'Living', '10:25:00', 'TV', 'Electrodomestico', 'Sony', 'encendido', 120.0, 3),
-(107, 7, 'Cocina', '10:30:00', 'Microondas', 'Electrodomestico', 'Whirlpool', 'apagado', 80.0, 4),
-(108, 8, 'Dormitorio', '10:35:00', 'Aire acondicionado', 'Electrodomestico', 'Daikin', 'encendido', 1500.0, 4),
-(109, 9, 'Baño', '10:40:00', 'Secador', 'Electrodomestico', 'Philips', 'apagado', 60.0, 5),
-(110, 10, 'Living', '10:45:00', 'Lámpara', 'Luz', 'Philips', 'encendido', 15.0, 5);
-
--- Consultas simples
+-- Vista general de todos los hogares
 SELECT * FROM hogares;
+
+-- Conteos y agrupaciones relevantes
+SELECT COUNT(DISTINCT ubicacion) AS ciudades_cubiertas FROM hogares;
+SELECT ubicacion, COUNT(*) AS cantidad_por_ciudad FROM hogares GROUP BY ubicacion;
+SELECT tipo_de_vivienda, COUNT(*) AS cantidad_por_tipo FROM hogares GROUP BY tipo_de_vivienda;
+
+-- Métricas de tiempo de conexión
+SELECT AVG(TIME_TO_SEC(tiempo_de_conexion)) AS segundos_promedio_conexion FROM hogares;
+SELECT MAX(tiempo_de_conexion) AS max_tiempo_conexion FROM hogares;
+
+-- Filtros específicos
+SELECT * FROM hogares WHERE tipo_de_vivienda = 'Casa';
+SELECT * FROM hogares WHERE ubicacion = 'Córdoba';
+
+-- Ordenamientos
+SELECT * FROM hogares ORDER BY tiempo_de_conexion ASC;
+SELECT * FROM hogares ORDER BY tiempo_de_conexion DESC;
+
+
+-- ============================
+-- SECCIÓN: USUARIOS
+-- Consultas relacionadas con usuarios, roles,
+-- edades y su distribución en hogares.
+-- ============================
+
+-- Vista general de todos los usuarios
 SELECT * FROM usuarios;
+
+-- Conteos y agrupaciones relevantes
+SELECT COUNT(*) AS total_usuarios FROM usuarios;
+SELECT id_hogar, COUNT(*) AS usuarios_por_hogar FROM usuarios GROUP BY id_hogar;
+SELECT rol, COUNT(*) AS cantidad_por_rol FROM usuarios GROUP BY rol;
+
+-- Métricas de edad
+SELECT AVG(edad) AS edad_promedio FROM usuarios;
+SELECT MIN(edad) AS edad_minima FROM usuarios;
+
+-- Filtros específicos
+SELECT * FROM usuarios WHERE rol = 'admin';
+SELECT * FROM usuarios WHERE edad > 30;
+
+-- Ordenamientos
+SELECT * FROM usuarios ORDER BY edad ASC;
+SELECT * FROM usuarios ORDER BY tiempo_de_conexion DESC;
+
+
+-- ============================
+-- SECCIÓN: DISPOSITIVOS DE CONTROL
+-- Consultas sobre dispositivos de control,
+-- su estado (activos, apagados, en ahorro) y conexiones.
+-- ============================
+
+-- Vista general de todos los dispositivos de control
 SELECT * FROM dispositivos_control;
+
+-- Conteos y agrupaciones relevantes
+SELECT COUNT(*) AS total_controles FROM dispositivos_control;
+SELECT id_usuario_conectado, SUM(dispositivos_activos) AS total_activos FROM dispositivos_control GROUP BY id_usuario_conectado;
+SELECT dispositivos_activos, COUNT(*) AS cantidad_por_activos FROM dispositivos_control GROUP BY dispositivos_activos;
+
+-- Métricas de estado
+SELECT AVG(dispositivos_apagados) AS promedio_apagados FROM dispositivos_control;
+SELECT MAX(dispositivos_en_ahorro) AS max_ahorro FROM dispositivos_control;
+
+-- Filtros específicos
+SELECT * FROM dispositivos_control WHERE dispositivos_activos > 1;
+SELECT * FROM dispositivos_control WHERE dispositivos_en_ahorro > 0;
+
+-- Ordenamientos
+SELECT * FROM dispositivos_control ORDER BY hora_de_conexion ASC;
+SELECT * FROM dispositivos_control ORDER BY hora_de_conexion DESC;
+
+
+-- ============================
+-- SECCIÓN: DISPOSITIVOS DEL HOGAR
+-- Consultas sobre dispositivos del hogar,
+-- consumo energético, tipos y ubicación.
+-- ============================
+
+-- Vista general de todos los dispositivos del hogar
 SELECT * FROM dispositivos_hogar;
+
+-- Conteos y agrupaciones relevantes
+SELECT COUNT(*) AS total_dispositivos FROM dispositivos_hogar;
+SELECT tipo_dispositivo, COUNT(*) AS cantidad_por_tipo FROM dispositivos_hogar GROUP BY tipo_dispositivo;
+SELECT ubicacion, AVG(consumo_energetico) AS promedio_consumo_ubicacion FROM dispositivos_hogar GROUP BY ubicacion;
+
+-- Métricas de consumo
+SELECT SUM(consumo_energetico) AS total_consumo FROM dispositivos_hogar;
+SELECT MAX(consumo_energetico) AS max_consumo FROM dispositivos_hogar;
+
+-- Filtros específicos
+SELECT * FROM dispositivos_hogar WHERE estado_dispositivo = 'encendido';
+SELECT * FROM dispositivos_hogar WHERE es_esencial = TRUE;
+
+-- Ordenamientos
+SELECT * FROM dispositivos_hogar ORDER BY consumo_energetico ASC;
+SELECT * FROM dispositivos_hogar ORDER BY hora_de_conexion DESC;
