@@ -63,6 +63,9 @@ def test_agregar_y_quitar_dispositivo(usuario):
     assert any(
         "Quitó dispositivo Lámpara" in act for act in usuario.perfil.registro_actividad)
 
+def test_verificar_clave(usuario):
+    assert usuario.verificar_clave("1234")
+    assert not usuario.verificar_clave("abcd")
 
 def test_perfil_acceso(usuario):
     assert isinstance(usuario.perfil, Perfil)

@@ -30,7 +30,7 @@ def test_es_esencial(dispositivo):
 
 
 def test_id_acceso(dispositivo):
-    assert dispositivo.id_dispositivo == "d1"  # Getter vía property
+    assert dispositivo.id_dispositivo == "d1"
 
 
 def test_repr(dispositivo):

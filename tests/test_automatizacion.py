@@ -2,7 +2,6 @@ import pytest
 from modelos.automatizacion import Automatizacion
 from modelos.dispositivo_hogar import DispositivoHogar
 
-
 def test_activar_automatizacion_apaga_no_esenciales():
     # 2 no esenciales encendidos, 1 esencial encendido
     d1 = DispositivoHogar(id_dispositivo="a1",
@@ -25,7 +24,6 @@ def test_activar_automatizacion_apaga_no_esenciales():
     assert d2.estado_dispositivo is False
     # El esencial sigue encendido
     assert d3.estado_dispositivo is True
-
 
 def test_activar_automatizacion_sin_cambios():
     d1 = DispositivoHogar(id_dispositivo="a1",

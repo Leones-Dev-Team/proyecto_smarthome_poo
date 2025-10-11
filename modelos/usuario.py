@@ -33,6 +33,28 @@ class Usuario:
             raise ValueError("El rol no puede estar vacío.")
         self._rol = nuevo_rol
 
+    def actualizar_datos(self, nombre: str = None, mail: str = None, telefono: str = None):
+        """Actualiza los datos personales del usuario."""
+        if nombre:
+            self._nombre = nombre
+        if mail:
+            self._mail = mail
+        if telefono:
+            self._telefono = telefono
+
+    def mostrar_info(self) -> str:
+        """Devuelve un resumen de la información del usuario."""
+        return (f"ID: {self._id_usuario}, Nombre: {self._nombre}, Rol: {self._rol}, "
+                f"Edad: {self._edad}, Mail: {self._mail}, Teléfono: {self._telefono}")
+
+    def cambiar_clave(self, nueva_clave: str):
+        """Cambia la clave del usuario."""
+        self._clave = nueva_clave
+
+    def registrar_actividad(self, actividad: str):
+        """Guarda solo la última actividad en el registro."""
+        self._registro_actividad = actividad
+
     @property
     def perfil(self) -> Perfil:
         return self._perfil
