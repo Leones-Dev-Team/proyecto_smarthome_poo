@@ -1,5 +1,7 @@
-# modelos/automatizacion.py
-from __future__ import annotations
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from modelos.dispositivo_hogar import DispositivoHogar
 from typing import List
 
@@ -41,3 +43,18 @@ class Automatizacion:
 
     def __repr__(self):
         return f"Automatizacion({self._nombre}, dispositivos={len(self._dispositivos)})"
+
+#Prueba para verificar que funciona bien:
+
+if __name__ == "__main__":
+    # Ejemplo de uso
+    from modelos.dispositivo_hogar import DispositivoHogar
+
+    d1 = DispositivoHogar(id_dispositivo="a1", nombre="Lámpara", tipo="luz", es_esencial=False)
+    d2 = DispositivoHogar(id_dispositivo="a2", nombre="Ventilador", tipo="clima", es_esencial=False)
+    d1.encender()
+    d2.encender()
+
+    automatizacion = Automatizacion("Modo Ahorro", [d1, d2])
+    apagados = automatizacion.activar()
+    print(f"Dispositivos apagados: {apagados}")
