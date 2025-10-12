@@ -1,8 +1,8 @@
-# 🏠 SmartHome – Evidencia N°5 (Módulo Programador)
+# 🏠 SmartHome – Evidencia N°5 y N° 6 (Módulo Programador)
 
 ## 📘 Descripción General
 
-**SmartHome** es un sistema simplificado de gestión domótica desarrollado como parte de la **Evidencia N°5 del Módulo Programador** de la Tecnicatura Superior en Desarrollo de Software (ISPC – Córdoba).
+**SmartHome** es un sistema simplificado de gestión desarrollado como parte de las **Evidencias N°5 y N° 6 del Módulo Programador** de la Tecnicatura Superior en Desarrollo de Software (ISPC – Córdoba).
 
 El proyecto aplica **Programación Orientada a Objetos (POO)** para modelar un sistema doméstico inteligente, donde usuarios pueden controlar dispositivos del hogar y automatizar acciones.
 
