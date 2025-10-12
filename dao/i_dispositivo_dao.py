@@ -1,23 +1,54 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from modelos.dispositivo_hogar import DispositivoHogar
 from abc import ABC, abstractmethod
+from typing import List, Optional
+from modelos.usuario import Usuario
 
-class IDispositivoDAO(ABC):
+
+class IUsuarioDAO(ABC):
+    """
+    Interfaz DAO para operaciones CRUD sobre Usuario.
+    Define los métodos abstractos para persistencia.
+    """
+
     @abstractmethod
-    def guardar(self, dispositivo: DispositivoHogar):
+    def crear(self, usuario: Usuario) -> bool:
+        """
+        Crea un nuevo usuario en la base de datos.
+        :param usuario: Instancia de Usuario a persistir.
+        :return: True si se creó exitosamente, False en caso contrario.
+        """
         pass
 
     @abstractmethod
-    def obtener(self, id_dispositivo: str) -> DispositivoHogar:
+    def leer(self, id_usuario: int) -> Optional[Usuario]:
+        """
+        Lee un usuario por su ID.
+        :param id_usuario: ID único del usuario.
+        :return: Instancia de Usuario si existe, None si no.
+        """
         pass
 
     @abstractmethod
-    def eliminar(self, id_dispositivo: str):
+    def actualizar(self, usuario: Usuario) -> bool:
+        """
+        Actualiza un usuario existente.
+        :param usuario: Instancia actualizada de Usuario.
+        :return: True si se actualizó exitosamente, False en caso contrario.
+        """
         pass
 
     @abstractmethod
-    def listar(self) -> list[DispositivoHogar]:
+    def eliminar(self, id_usuario: int) -> bool:
+        """
+        Elimina un usuario por su ID.
+        :param id_usuario: ID único del usuario.
+        :return: True si se eliminó exitosamente, False en caso contrario.
+        """
+        pass
+
+    @abstractmethod
+    def obtener_todos(self) -> List[Usuario]:
+        """
+        Obtiene todos los usuarios.
+        :return: Lista de instancias de Usuario.
+        """
         pass
