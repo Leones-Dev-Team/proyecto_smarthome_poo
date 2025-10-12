@@ -5,10 +5,10 @@ __pycache__/
 *.pyd
 
 # --- Entornos virtuales ---
-venv/
 .venv/
-env/
+venv/
 .env/
+env/
 
 # --- Configuración local / credenciales ---
 *.env
@@ -21,6 +21,11 @@ env/
 *.tmp
 *.bak
 
+# --- Archivos de pruebas ---
+.pytest_cache/
+.coverage
+htmlcov/
+
 # --- VS Code ---
 .vscode/
 .history/
@@ -28,17 +33,10 @@ env/
 # --- Visual Studio Community ---
 .vs/
 
-
-# --- Archivos de pruebas ---
-.pytest_cache/
-.coverage
-htmlcov/
-
 # --- Archivos del sistema (Windows) ---
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 
 # --- Qodo Gen ---
-.qodo
 .qodo/
