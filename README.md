@@ -160,6 +160,4 @@ pip install pytest
 ## 📚 Créditos
 
 Proyecto desarrollado por **LeonesDev**
-para la materia **Programador – ISPC Córdoba (2025)**.
-
-> *"Evidencian muy buen trabajo de gestión de proyecto."* — Feedback docente.
+para la materia **Programador I – ISPC Córdoba (2025)**.
