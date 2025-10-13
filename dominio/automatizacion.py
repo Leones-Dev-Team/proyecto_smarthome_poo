@@ -1,15 +1,10 @@
-import sys
-import os
 from typing import List, Optional
-from modelos.dispositivo_hogar import DispositivoHogar
-
-# Agregar ruta del proyecto
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from dominio.dispositivo_hogar import DispositivoHogar
 
 
 class Automatizacion:
     """
-    Representa una automatización de ahorro energético.
+    Representa una automatizacion de ahorro energetico.
     Apaga dispositivos no esenciales. Agregación: dispositivos independientes.
     """
 
@@ -42,32 +37,33 @@ class Automatizacion:
     def agregar_dispositivo(self, dispositivo: DispositivoHogar):
         if dispositivo not in self._dispositivos:
             self._dispositivos.append(dispositivo)
-            # Opcional: Persistir cambio vía DAO
             if self._id_automatizacion:
                 from dao.automatizacion_dao import AutomatizacionDAO
                 dao = AutomatizacionDAO()
-                dao.agregar_dispositivo(self._id_automatizacion, dispositivo.id_dispositivo)
+                dao.agregar_dispositivo(
+                    self._id_automatizacion, dispositivo.id_dispositivo)
 
     def quitar_dispositivo(self, dispositivo: DispositivoHogar):
         if dispositivo in self._dispositivos:
             self._dispositivos.remove(dispositivo)
-            # Opcional: Persistir cambio vía DAO
             if self._id_automatizacion:
                 from dao.automatizacion_dao import AutomatizacionDAO
                 dao = AutomatizacionDAO()
-                dao.quitar_dispositivo(self._id_automatizacion, dispositivo.id_dispositivo)
+                dao.quitar_dispositivo(
+                    self._id_automatizacion, dispositivo.id_dispositivo)
 
     # Lógica principal
     def activar(self) -> int:
         apagados = 0
         for disp in self._dispositivos:
-            if not disp.es_esencial() and disp.estado_dispositivo:
+            if not disp.es_esencial and disp.estado_dispositivo == "encendido":
                 disp.apagar()
                 apagados += 1
-                # Opcional: Actualizar BD si estado persiste
+                from dao.dispositivo_dao import DispositivoDAO
+                dao = DispositivoDAO()
+                dao.actualizar(disp)
         return apagados
 
-    # Persistencia (opcional, si se usa DAO)
     def guardar(self):
         from dao.automatizacion_dao import AutomatizacionDAO
         dao = AutomatizacionDAO()
@@ -81,14 +77,4 @@ class Automatizacion:
         from dao.automatizacion_dao import AutomatizacionDAO
         dao = AutomatizacionDAO()
         data = dao.leer(id_automatizacion)
-        if data:
-            # Cargar dispositivos desde BD
-            return cls(
-                data['nombre'],
-                dao.obtener_dispositivos(id_automatizacion),
-                id_automatizacion
-            )
-        raise ValueError("Automatización no encontrada.")
-
-    def __repr__(self) -> str:
-        return f"Automatizacion({self._nombre}, dispositivos={len(self._dispositivos)})"
+        return cls(data.nombre, list(data.dispositivos), id_automatizacion)

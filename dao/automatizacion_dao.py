@@ -1,99 +1,137 @@
-from typing import List
-from modelos.automatizacion import Automatizacion
-from modelos.dispositivo_hogar import DispositivoHogar
-from dao.i_automatizacion_dao import IAutomatizacionDAO
-from database_connection import obtener_conexion
+from typing import List, Optional, cast
+from dominio.automatizacion import Automatizacion
+from dominio.dispositivo_hogar import DispositivoHogar
+from dao.interfaces.i_automatizacion_dao import IAutomatizacionDAO
+from connection.obtener_conexion import obtener_conexion
 
 
 class AutomatizacionDAO(IAutomatizacionDAO):
-    """
-    Implementación DAO para la entidad Automatizacion y su relación con dispositivos.
-    """
-
+    # Crea una automatización y devuelve el id autogenerado
     def crear(self, automatizacion: Automatizacion) -> int:
         query = "INSERT INTO automatizaciones (nombre) VALUES (%s)"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (automatizacion.nombre,))
-                conn.commit()
-                return cursor.lastrowid
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (str(automatizacion.nombre),))
+                    conn.commit()
+                    return cast(int, cursor.lastrowid)
+        except Exception:
+            raise
 
+    # Lee una automatización por id; si no existe, lanza ValueError
     def leer(self, id_automatizacion: int) -> Automatizacion:
         query = "SELECT nombre FROM automatizaciones WHERE id_automatizacion = %s"
         with obtener_conexion() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (id_automatizacion,))
+                cursor.execute(query, (int(id_automatizacion),))
                 row = cursor.fetchone()
                 if row:
-                    nombre = row[0]
-                    dispositivos = self.obtener_dispositivos(id_automatizacion)
-                    return Automatizacion(nombre, dispositivos)
+                    (nombre,) = row
+                    dispositivos = self.obtener_dispositivos(
+                        int(id_automatizacion))
+                    return Automatizacion(str(nombre), dispositivos, cast(int, id_automatizacion))
                 raise ValueError("Automatización no encontrada")
 
-    def actualizar(self, automatizacion: Automatizacion, id_automatizacion: int) -> bool:
+    # Actualiza el nombre de una automatización existente
+    def actualizar(self, automatizacion: Automatizacion) -> bool:
         query = "UPDATE automatizaciones SET nombre = %s WHERE id_automatizacion = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (automatizacion.nombre, id_automatizacion))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (
+                        str(automatizacion.nombre),
+                        cast(int, automatizacion.id_automatizacion)
+                    ))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
+    # Elimina una automatización por id
     def eliminar(self, id_automatizacion: int) -> bool:
         query = "DELETE FROM automatizaciones WHERE id_automatizacion = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_automatizacion,))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (int(id_automatizacion),))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
+    # Obtiene todas las automatizaciones almacenadas
     def obtener_todos(self) -> List[Automatizacion]:
         query = "SELECT id_automatizacion, nombre FROM automatizaciones"
-        automatizaciones = []
+        automatizaciones: List[Automatizacion] = []
         with obtener_conexion() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
-                for id_auto, nombre in cursor.fetchall():
-                    dispositivos = self.obtener_dispositivos(id_auto)
-                    automatizaciones.append(Automatizacion(nombre, dispositivos))
+                for row in cursor.fetchall():
+                    raw_id_auto, nombre = row
+                    dispositivos = self.obtener_dispositivos(
+                        cast(int, raw_id_auto))
+                    automatizaciones.append(Automatizacion(
+                        str(nombre),
+                        dispositivos,
+                        cast(int, raw_id_auto)
+                    ))
         return automatizaciones
 
-    def agregar_dispositivo(self, id_automatizacion: int, id_dispositivo: str) -> bool:
+    # Agrega un dispositivo a una automatización
+    def agregar_dispositivo(self, id_automatizacion: int, id_dispositivo: int) -> bool:
         query = """
         INSERT INTO automatizacion_dispositivo (id_automatizacion, id_dispositivo)
         VALUES (%s, %s)
         """
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_automatizacion, id_dispositivo))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        query, (int(id_automatizacion), int(id_dispositivo)))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
-    def quitar_dispositivo(self, id_automatizacion: int, id_dispositivo: str) -> bool:
+    # Quita un dispositivo de una automatización
+    def quitar_dispositivo(self, id_automatizacion: int, id_dispositivo: int) -> bool:
         query = """
         DELETE FROM automatizacion_dispositivo
         WHERE id_automatizacion = %s AND id_dispositivo = %s
         """
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_automatizacion, id_dispositivo))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        query, (int(id_automatizacion), int(id_dispositivo)))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
+    # Obtiene los dispositivos asociados a una automatización
     def obtener_dispositivos(self, id_automatizacion: int) -> List[DispositivoHogar]:
         query = """
-        SELECT d.id_dispositivo, d.nombre, d.tipo, d.es_esencial, d.estado_dispositivo
-        FROM dispositivos d
+        SELECT d.id_dispositivo, d.id_hogar, d.nombre_dispositivo, d.tipo_dispositivo, 
+               d.marca_dispositivo, d.estado_dispositivo, d.consumo_energetico, d.es_esencial
+        FROM dispositivos_hogar d
         JOIN automatizacion_dispositivo ad ON d.id_dispositivo = ad.id_dispositivo
         WHERE ad.id_automatizacion = %s
         """
-        dispositivos = []
+        dispositivos: List[DispositivoHogar] = []
         with obtener_conexion() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (id_automatizacion,))
+                cursor.execute(query, (int(id_automatizacion),))
                 for row in cursor.fetchall():
-                    id_disp, nombre, tipo, es_esencial, estado = row
-                    dispositivo = DispositivoHogar(id_disp, nombre, tipo, es_esencial)
-                    if estado:
-                        dispositivo.encender()
-                    dispositivos.append(dispositivo)
+                    raw_id_disp, raw_id_hogar, nombre, tipo, marca, estado, consumo, es_esencial = row
+                    dispositivos.append(DispositivoHogar(
+                        cast(int, raw_id_disp),
+                        cast(int, raw_id_hogar),
+                        str(nombre),
+                        str(tipo),
+                        str(marca) if marca is not None else None,
+                        str(estado),
+                        float(cast(float, consumo)),
+                        bool(es_esencial)
+                    ))
         return dispositivos

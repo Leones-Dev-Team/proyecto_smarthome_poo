@@ -1,106 +1,142 @@
--- ============================
--- SECCIÓN: HOGARES
--- Consultas relacionadas con información de hogares,
--- ubicaciones, tipos de vivienda y tiempos de conexión.
--- ============================
+-- ============================================
+-- CONSULTAS SOBRE HOGARES
+-- ============================================
 
--- Vista general de todos los hogares
+-- Vista general
 SELECT * FROM hogares;
 
--- Conteos y agrupaciones relevantes
-SELECT COUNT(DISTINCT ubicacion) AS ciudades_cubiertas FROM hogares;
-SELECT ubicacion, COUNT(*) AS cantidad_por_ciudad FROM hogares GROUP BY ubicacion;
-SELECT tipo_de_vivienda, COUNT(*) AS cantidad_por_tipo FROM hogares GROUP BY tipo_de_vivienda;
+-- Ciudades únicas
+SELECT DISTINCT ciudad FROM hogares;
 
--- Métricas de tiempo de conexión
-SELECT AVG(TIME_TO_SEC(tiempo_de_conexion)) AS segundos_promedio_conexion FROM hogares;
-SELECT MAX(tiempo_de_conexion) AS max_tiempo_conexion FROM hogares;
+-- Orden por tiempo de registro descendente
+SELECT * FROM hogares
+ORDER BY tiempo_registro DESC;
 
--- Filtros específicos
-SELECT * FROM hogares WHERE tipo_de_vivienda = 'Casa';
-SELECT * FROM hogares WHERE ubicacion = 'Córdoba';
+-- Hogares en Córdoba
+SELECT * FROM hogares
+WHERE ciudad = 'Córdoba';
 
--- Ordenamientos
-SELECT * FROM hogares ORDER BY tiempo_de_conexion ASC;
-SELECT * FROM hogares ORDER BY tiempo_de_conexion DESC;
+-- Cantidad de hogares tipo 'Casa'
+SELECT COUNT(*) AS cantidad_casas
+FROM hogares
+WHERE tipo = 'Casa';
 
+-- Cantidad de hogares por tipo
+SELECT tipo, COUNT(*) AS cantidad
+FROM hogares
+GROUP BY tipo;
 
--- ============================
--- SECCIÓN: USUARIOS
--- Consultas relacionadas con usuarios, roles,
--- edades y su distribución en hogares.
--- ============================
+-- Hogares con tiempo de registro mayor a 01:00:00
+SELECT * FROM hogares
+WHERE tiempo_registro > '01:00:00';
 
--- Vista general de todos los usuarios
+-- Hogar con menor tiempo de registro
+SELECT * FROM hogares
+ORDER BY tiempo_registro ASC
+LIMIT 1;
+
+-- Hogares con descripción que contiene 'inicial'
+SELECT * FROM hogares
+WHERE descripcion LIKE '%inicial%';
+
+-- Promedio de tiempo de registro
+SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(tiempo_registro))) AS promedio_tiempo
+FROM hogares;
+
+-- ============================================
+-- CONSULTAS SOBRE USUARIOS
+-- ============================================
+
+-- Vista general
 SELECT * FROM usuarios;
 
--- Conteos y agrupaciones relevantes
-SELECT COUNT(*) AS total_usuarios FROM usuarios;
-SELECT id_hogar, COUNT(*) AS usuarios_por_hogar FROM usuarios GROUP BY id_hogar;
-SELECT rol, COUNT(*) AS cantidad_por_rol FROM usuarios GROUP BY rol;
+-- Emails y teléfonos
+SELECT email, telefono
+FROM usuarios;
 
--- Métricas de edad
-SELECT AVG(edad) AS edad_promedio FROM usuarios;
-SELECT MIN(edad) AS edad_minima FROM usuarios;
+-- Orden por edad descendente
+SELECT * FROM usuarios
+ORDER BY edad DESC;
 
--- Filtros específicos
-SELECT * FROM usuarios WHERE rol = 'admin';
-SELECT * FROM usuarios WHERE edad > 30;
+-- Usuarios mayores de 30 años
+SELECT * FROM usuarios
+WHERE edad > 30;
 
--- Ordenamientos
-SELECT * FROM usuarios ORDER BY edad ASC;
-SELECT * FROM usuarios ORDER BY tiempo_de_conexion DESC;
+-- Cantidad de usuarios por hogar
+SELECT id_hogar, COUNT(*) AS cantidad_usuarios
+FROM usuarios
+GROUP BY id_hogar;
 
+-- Edad promedio
+SELECT AVG(edad) AS edad_promedio
+FROM usuarios;
 
--- ============================
--- SECCIÓN: DISPOSITIVOS DE CONTROL
--- Consultas sobre dispositivos de control,
--- su estado (activos, apagados, en ahorro) y conexiones.
--- ============================
+-- Usuarios con email @example.com
+SELECT * FROM usuarios
+WHERE email LIKE '%@example.com';
 
--- Vista general de todos los dispositivos de control
+-- Usuario con menor tiempo de uso
+SELECT * FROM usuarios
+ORDER BY tiempo_uso ASC
+LIMIT 1;
+
+-- Usuarios del hogar 3
+SELECT * FROM usuarios
+WHERE id_hogar = 3;
+
+-- Cantidad de usuarios menores de 30 años
+SELECT COUNT(*) AS menores_30
+FROM usuarios
+WHERE edad < 30;
+
+-- ============================================
+-- CONSULTAS SOBRE DISPOSITIVOS DE CONTROL
+-- ============================================
+
+-- Vista general
 SELECT * FROM dispositivos_control;
 
--- Conteos y agrupaciones relevantes
-SELECT COUNT(*) AS total_controles FROM dispositivos_control;
-SELECT id_usuario_conectado, SUM(dispositivos_activos) AS total_activos FROM dispositivos_control GROUP BY id_usuario_conectado;
-SELECT dispositivos_activos, COUNT(*) AS cantidad_por_activos FROM dispositivos_control GROUP BY dispositivos_activos;
+-- Usuario y estado de cada dispositivo
+SELECT id_usuario, estado
+FROM dispositivos_control;
 
--- Métricas de estado
-SELECT AVG(dispositivos_apagados) AS promedio_apagados FROM dispositivos_control;
-SELECT MAX(dispositivos_en_ahorro) AS max_ahorro FROM dispositivos_control;
+-- Dispositivos encendidos
+SELECT * FROM dispositivos_control
+WHERE estado = 1;
 
--- Filtros específicos
-SELECT * FROM dispositivos_control WHERE dispositivos_activos > 1;
-SELECT * FROM dispositivos_control WHERE dispositivos_en_ahorro > 0;
+-- Dispositivos en modo 2
+SELECT * FROM dispositivos_control
+WHERE modo = 2;
 
--- Ordenamientos
-SELECT * FROM dispositivos_control ORDER BY hora_de_conexion ASC;
-SELECT * FROM dispositivos_control ORDER BY hora_de_conexion DESC;
+-- Cantidad por estado
+SELECT estado, COUNT(*) AS cantidad
+FROM dispositivos_control
+GROUP BY estado;
 
+-- Orden por hora de control ascendente
+SELECT * FROM dispositivos_control
+ORDER BY hora_control ASC;
 
--- ============================
--- SECCIÓN: DISPOSITIVOS DEL HOGAR
--- Consultas sobre dispositivos del hogar,
--- consumo energético, tipos y ubicación.
--- ============================
+-- Último usuario con dispositivo
+SELECT * FROM dispositivos_control
+ORDER BY id_usuario DESC
+LIMIT 1;
 
--- Vista general de todos los dispositivos del hogar
-SELECT * FROM dispositivos_hogar;
+-- Dispositivos de usuarios del hogar 1
+SELECT dc.*
+FROM dispositivos_control dc
+JOIN usuarios u ON dc.id_usuario = u.id_usuario
+WHERE u.id_hogar = 1;
 
--- Conteos y agrupaciones relevantes
-SELECT COUNT(*) AS total_dispositivos FROM dispositivos_hogar;
-SELECT tipo_dispositivo, COUNT(*) AS cantidad_por_tipo FROM dispositivos_hogar GROUP BY tipo_dispositivo;
-SELECT ubicacion, AVG(consumo_energetico) AS promedio_consumo_ubicacion FROM dispositivos_hogar GROUP BY ubicacion;
+-- Cantidad por modo
+SELECT modo, COUNT(*) AS cantidad
+FROM dispositivos_control
+GROUP BY modo;
 
--- Métricas de consumo
-SELECT SUM(consumo_energetico) AS total_consumo FROM dispositivos_hogar;
-SELECT MAX(consumo_energetico) AS max_consumo FROM dispositivos_hogar;
-
--- Filtros específicos
-SELECT * FROM dispositivos_hogar WHERE estado_dispositivo = 'encendido';
-SELECT * FROM dispositivos_hogar WHERE es_esencial = TRUE;
-
--- Ordenamientos
-SELECT * FROM dispositivos_hogar ORDER BY consumo_energetico ASC;
-SELECT * FROM dispositivos_hogar ORDER BY hora_de_conexion DESC;
+-- Verificación de dispositivos encendidos
+SELECT CASE
+    WHEN COUNT(*) > 0 THEN 'Hay dispositivos encendidos'
+    ELSE 'No hay dispositivos encendidos'
+END AS resultado
+FROM dispositivos_control
+WHERE estado = 1;

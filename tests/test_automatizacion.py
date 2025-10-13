@@ -1,28 +1,46 @@
-import sys
-import os
 import pytest
-
-# 🔧 Asegurar que Python vea el paquete raíz del proyecto
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from modelos.automatizacion import Automatizacion
-from modelos.dispositivo_hogar import DispositivoHogar
+from dominio.dispositivo_hogar import DispositivoHogar
+from dominio.automatizacion import Automatizacion
 
 
 @pytest.fixture
 def dispositivos_basicos():
     """Crea dispositivos de prueba (2 no esenciales, 1 esencial)."""
-    d1 = DispositivoHogar(id_dispositivo="a1", nombre="Lámpara", tipo="luz", es_esencial=False)
-    d2 = DispositivoHogar(id_dispositivo="a2", nombre="Ventilador", tipo="clima", es_esencial=False)
-    d3 = DispositivoHogar(id_dispositivo="a3", nombre="Router", tipo="red", es_esencial=True)
+    d1 = DispositivoHogar(
+        id_dispositivo=1,
+        id_hogar=1,
+        nombre="Lampara",
+        tipo="luz",
+        marca=None,
+        estado_dispositivo="apagado",
+        consumo_energetico=10.0,
+        es_esencial=False
+    )
+    d2 = DispositivoHogar(
+        id_dispositivo=2,
+        id_hogar=1,
+        nombre="Ventilador",
+        tipo="clima",
+        marca=None,
+        estado_dispositivo="apagado",
+        consumo_energetico=20.0,
+        es_esencial=False
+    )
+    d3 = DispositivoHogar(
+        id_dispositivo=3,
+        id_hogar=1,
+        nombre="Router",
+        tipo="red",
+        marca=None,
+        estado_dispositivo="apagado",
+        consumo_energetico=5.0,
+        es_esencial=True
+    )
     return d1, d2, d3
 
 
 def test_activar_automatizacion_apaga_no_esenciales(dispositivos_basicos):
-    """Debe apagar solo los dispositivos no esenciales encendidos."""
     d1, d2, d3 = dispositivos_basicos
-
-    # Encendemos todos
     d1.encender()
     d2.encender()
     d3.encender()
@@ -30,29 +48,29 @@ def test_activar_automatizacion_apaga_no_esenciales(dispositivos_basicos):
     automatizacion = Automatizacion("Modo Ahorro", [d1, d2, d3])
     apagados = automatizacion.activar()
 
-    assert apagados == 2  # solo d1 y d2 deben apagarse
-    assert d1.estado_dispositivo is False
-    assert d2.estado_dispositivo is False
-    assert d3.estado_dispositivo is True  # esencial sigue encendido
+    assert apagados == 2
+    assert d1.estado_dispositivo == "apagado"
+    assert d2.estado_dispositivo == "apagado"
+    assert d3.estado_dispositivo == "encendido"  # esencial sigue encendido
 
 
 def test_activar_automatizacion_sin_cambios():
-    """No debe apagar nada si todos ya están apagados."""
-    d1 = DispositivoHogar(id_dispositivo="a1", nombre="Lámpara", tipo="luz", es_esencial=False)
-    d2 = DispositivoHogar(id_dispositivo="a2", nombre="Ventilador", tipo="clima", es_esencial=False)
+    d1 = DispositivoHogar(1, 1, "Lampara", "luz", None, "apagado", 10.0, False)
+    d2 = DispositivoHogar(2, 1, "Ventilador", "clima",
+                          None, "apagado", 20.0, False)
 
     automatizacion = Automatizacion("Modo Ahorro", [d1, d2])
     apagados = automatizacion.activar()
 
     assert apagados == 0
-    assert d1.estado_dispositivo is False
-    assert d2.estado_dispositivo is False
+    assert d1.estado_dispositivo == "apagado"
+    assert d2.estado_dispositivo == "apagado"
 
 
 def test_agregar_y_quitar_dispositivo():
-    """Verifica agregar y quitar dispositivos de la automatización."""
-    d1 = DispositivoHogar(id_dispositivo="x1", nombre="TV", tipo="video", es_esencial=False)
-    d2 = DispositivoHogar(id_dispositivo="x2", nombre="Heladera", tipo="clima", es_esencial=True)
+    d1 = DispositivoHogar(10, 1, "TV", "video", None, "apagado", 50.0, False)
+    d2 = DispositivoHogar(11, 1, "Heladera", "clima",
+                          "LG", "apagado", 150.0, True)
 
     automatizacion = Automatizacion("Prueba", [d1])
     assert len(automatizacion.dispositivos) == 1
