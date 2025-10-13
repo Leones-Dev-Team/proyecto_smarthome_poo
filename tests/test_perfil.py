@@ -1,5 +1,5 @@
 import pytest
-from modelos.perfil import Perfil
+from dominio.perfil import Perfil
 
 
 @pytest.fixture
@@ -17,28 +17,28 @@ def test_setters_validos(perfil):
 
 
 def test_setters_invalidos(perfil):
-    with pytest.raises(ValueError, match="El nombre debe ser una cadena no vacía"):
+    with pytest.raises(ValueError, match="El nombre debe ser una cadena no vacia."):
         perfil.nombre = ""
-    with pytest.raises(ValueError, match="El mail debe ser una dirección válida"):
+    with pytest.raises(ValueError, match="El mail debe ser una direccion valida."):
         perfil.mail = "correo-invalido"
-    with pytest.raises(ValueError, match="El teléfono debe ser texto o None"):
+    with pytest.raises(ValueError, match="El telefono debe ser texto o None."):
         perfil.telefono = 12345  # no es str ni None
 
 
 def test_registrar_actividad(perfil):
-    perfil.registrar_actividad("Inicio de sesión")
-    perfil.registrar_actividad("Configuró dispositivo")
+    perfil.registrar_actividad("Inicio de sesion")
+    perfil.registrar_actividad("Configuro dispositivo")
     actividades = perfil.registro_actividad
     assert len(actividades) == 2
-    assert any("Inicio de sesión" in act for act in actividades)
-    assert any("Configuró dispositivo" in act for act in actividades)
+    assert any("Inicio de sesion" in act for act in actividades)
+    assert any("Configuro dispositivo" in act for act in actividades)
 
 
 def test_registro_es_inmutable(perfil):
     perfil.registrar_actividad("Prueba")
     log = perfil.registro_actividad
     with pytest.raises(AttributeError):
-        log.append("No debería poder")  # tuple no tiene append
+        log.append("No deberia poder")  # tuple no tiene append
     assert len(perfil.registro_actividad) == 1  # intacto
 
 

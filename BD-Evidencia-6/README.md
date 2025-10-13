@@ -10,7 +10,7 @@ Este proyecto incluye dos scripts MySQL:
 ## Vista rápida en OneCompiler
 
 Si quiere visualizar las consultas ejecutándose automáticamente, puede utilizar el siguiente enlace directo:  
-👉 [Ejecutar en OneCompiler](https://onecompiler.com/mysql/43zgc25yr)
+👉 [Ejecutar en OneCompiler](https://onecompiler.com/mysql/43yypdp99)
 
 ---
 

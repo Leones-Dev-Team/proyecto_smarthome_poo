@@ -1,110 +1,131 @@
-from typing import List, Optional
-from modelos.usuario import Usuario
-from modelos.perfil import Perfil
-from dao.i_usuario_dao import IUsuarioDAO
-from database_connection import obtener_conexion
+from typing import List, Optional, cast
+from dominio.usuario import Usuario
+from dominio.perfil import Perfil
+from dao.interfaces.i_usuario_dao import IUsuarioDAO
+from connection.obtener_conexion import obtener_conexion
 
 
 class UsuarioDAO(IUsuarioDAO):
     def crear(self, usuario: Usuario) -> bool:
         query = """
-        INSERT INTO usuarios (id_usuario, contrasena, rol, id_perfil, id_hogar)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO usuarios (id_usuario, clave, edad, rol, id_hogar, id_perfil)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (
-                    usuario.id_usuario,
-                    usuario.contrasena,
-                    usuario.rol,
-                    usuario.id_perfil,
-                    usuario.id_hogar
-                ))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (
+                        int(usuario.id_usuario),
+                        str(usuario._clave),
+                        int(usuario.edad),
+                        str(usuario.rol),
+                        int(usuario.id_hogar),
+                        int(usuario.perfil.id_perfil) if usuario.perfil.id_perfil is not None else 0
+                    ))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
     def leer(self, id_usuario: int) -> Optional[Usuario]:
         query = """
-        SELECT contrasena, rol, id_perfil, id_hogar
-        FROM usuarios
-        WHERE id_usuario = %s
+        SELECT u.clave, u.edad, u.rol, u.id_hogar, p.id_perfil, p.nombre, p.mail, p.telefono
+        FROM usuarios u
+        JOIN perfiles p ON u.id_perfil = p.id_perfil
+        WHERE u.id_usuario = %s
         """
         with obtener_conexion() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (id_usuario,))
+                cursor.execute(query, (int(id_usuario),))
                 row = cursor.fetchone()
                 if row:
-                    contrasena, rol, id_perfil, id_hogar = row
-                    perfil = Perfil("", "") if id_perfil else None  # Placeholder
-                    return Usuario(id_usuario, contrasena, rol, perfil, id_hogar)
+                    clave, edad, rol, id_hogar, id_perfil, nombre, mail, telefono = row
+
+                    # Forzamos tipos correctos
+                    edad = cast(int, edad)
+                    id_hogar = cast(int, id_hogar)
+                    id_perfil = cast(int, id_perfil)
+
+                    perfil = Perfil(
+                        str(nombre),
+                        str(mail),
+                        str(telefono) if telefono is not None else None,
+                        id_perfil
+                    )
+                    return Usuario(
+                        int(id_usuario),
+                        str(clave),
+                        str(rol),
+                        perfil,
+                        id_hogar,
+                        edad
+                    )
                 return None
 
     def actualizar(self, usuario: Usuario) -> bool:
         query = """
         UPDATE usuarios
-        SET contrasena = %s, rol = %s, id_perfil = %s, id_hogar = %s
+        SET clave = %s, edad = %s, rol = %s, id_hogar = %s, id_perfil = %s
         WHERE id_usuario = %s
         """
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (
-                    usuario.contrasena,
-                    usuario.rol,
-                    usuario.id_perfil,
-                    usuario.id_hogar,
-                    usuario.id_usuario
-                ))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (
+                        str(usuario._clave),
+                        int(usuario.edad),
+                        str(usuario.rol),
+                        int(usuario.id_hogar),
+                        int(usuario.perfil.id_perfil) if usuario.perfil.id_perfil is not None else 0,
+                        int(usuario.id_usuario)
+                    ))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
     def eliminar(self, id_usuario: int) -> bool:
         query = "DELETE FROM usuarios WHERE id_usuario = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_usuario,))
-                conn.commit()
-                return cursor.rowcount > 0
+        try:
+            with obtener_conexion() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(query, (int(id_usuario),))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception:
+            return False
 
     def obtener_todos(self) -> List[Usuario]:
-        query = "SELECT id_usuario, contrasena, rol, id_perfil, id_hogar FROM usuarios"
-        usuarios = []
+        query = """
+        SELECT u.id_usuario, u.clave, u.edad, u.rol, u.id_hogar, p.id_perfil, p.nombre, p.mail, p.telefono
+        FROM usuarios u
+        JOIN perfiles p ON u.id_perfil = p.id_perfil
+        """
+        usuarios: List[Usuario] = []
         with obtener_conexion() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
-                    id_usuario, contrasena, rol, id_perfil, id_hogar = row
-                    perfil = Perfil("", "") if id_perfil else None
-                    usuarios.append(Usuario(id_usuario, contrasena, rol, perfil, id_hogar))
+                    id_usuario, clave, edad, rol, id_hogar, id_perfil, nombre, mail, telefono = row
+
+                    # Forzamos tipos correctos
+                    id_usuario = cast(int, id_usuario)
+                    edad = cast(int, edad)
+                    id_hogar = cast(int, id_hogar)
+                    id_perfil = cast(int, id_perfil)
+
+                    perfil = Perfil(
+                        str(nombre),
+                        str(mail),
+                        str(telefono) if telefono is not None else None,
+                        id_perfil
+                    )
+                    usuarios.append(Usuario(
+                        id_usuario,
+                        str(clave),
+                        str(rol),
+                        perfil,
+                        id_hogar,
+                        edad
+                    ))
         return usuarios
-
-    def asociar_perfil(self, id_usuario: int, id_perfil: int) -> bool:
-        query = "UPDATE usuarios SET id_perfil = %s WHERE id_usuario = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_perfil, id_usuario))
-                conn.commit()
-                return cursor.rowcount > 0
-
-    def desasociar_perfil(self, id_usuario: int) -> bool:
-        query = "UPDATE usuarios SET id_perfil = NULL WHERE id_usuario = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_usuario,))
-                conn.commit()
-                return cursor.rowcount > 0
-
-    def asignar_hogar(self, id_usuario: int, id_hogar: int) -> bool:
-        query = "UPDATE usuarios SET id_hogar = %s WHERE id_usuario = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_hogar, id_usuario))
-                conn.commit()
-                return cursor.rowcount > 0
-
-    def quitar_hogar(self, id_usuario: int) -> bool:
-        query = "UPDATE usuarios SET id_hogar = NULL WHERE id_usuario = %s"
-        with obtener_conexion() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (id_usuario,))
-                conn.commit()
-                return cursor.rowcount > 0
