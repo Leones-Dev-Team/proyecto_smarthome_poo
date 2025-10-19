@@ -1,132 +1,200 @@
 -- ============================================
--- BASE DE DATOS: SMART HOME
--- Script de consultas (queries.sql)
+-- ARCHIVO: QUERIES.SQL
+-- Consultas din�micas para el sistema Smart Home
 -- ============================================
 
--- ============================
--- CONSULTAS SIMPLES POR TABLA
--- ============================
+-- ============================================
+-- CONSULTAS PARA REEMPLAZAR DATOS DERIVADOS
+-- Calculan din�micamente la informaci�n que antes se almacenaba en dispositivos_control
+-- ============================================
 
--- Hogares: mostrar todos los hogares
-SELECT *
-FROM hogares;
+-- Consulta 1: Contar dispositivos activos por usuario
+-- Reemplaza el campo "dispositivos_activos" eliminado de dispositivos_control
+SELECT 
+    u.id_usuario,
+    u.mail,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'encendido' THEN 1 END) as dispositivos_activos
+FROM usuarios u
+LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
+GROUP BY u.id_usuario, u.mail
+ORDER BY u.id_usuario;
 
--- Perfiles: listar nombre y mail de todos los perfiles
-SELECT nombre, mail
-FROM perfiles;
+-- Consulta 2: Contar dispositivos apagados por usuario
+-- Reemplaza el campo "dispositivos_apagados" eliminado de dispositivos_control
+SELECT 
+    u.id_usuario,
+    u.mail,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'apagado' THEN 1 END) as dispositivos_apagados
+FROM usuarios u
+LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
+GROUP BY u.id_usuario, u.mail
+ORDER BY u.id_usuario;
 
--- Usuarios: mostrar id, rol y hogar asociado
-SELECT id_usuario, rol, id_hogar
-FROM usuarios;
+-- Consulta 3: Contar dispositivos en modo ahorro por usuario
+-- Reemplaza el campo "dispositivos_en_ahorro" eliminado de dispositivos_control
+SELECT 
+    u.id_usuario,
+    u.mail,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'ahorro' THEN 1 END) as dispositivos_en_ahorro
+FROM usuarios u
+LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
+GROUP BY u.id_usuario, u.mail
+ORDER BY u.id_usuario;
 
--- Dispositivos del hogar: listar nombre y consumo
-SELECT nombre_dispositivo, consumo_energetico
-FROM dispositivos_hogar;
+-- Consulta 4: Resumen completo de estados de dispositivos por usuario
+-- Combina toda la informaci�n que antes se almacenaba como datos derivados
+SELECT 
+    u.id_usuario,
+    u.mail,
+    u.rol,
+    dc.hora_de_conexion,
+    COUNT(dh.id_dispositivo) as total_dispositivos,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'encendido' THEN 1 END) as dispositivos_activos,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'apagado' THEN 1 END) as dispositivos_apagados,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'ahorro' THEN 1 END) as dispositivos_en_ahorro,
+    SUM(CASE WHEN dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_total_activo
+FROM usuarios u
+LEFT JOIN dispositivos_control dc ON u.id_usuario = dc.id_usuario_conectado
+LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
+GROUP BY u.id_usuario, u.mail, u.rol, dc.hora_de_conexion
+ORDER BY u.id_usuario;
 
--- Dispositivos de control: vista general
-SELECT *
-FROM dispositivos_control;
+-- ============================================
+-- CONSULTAS ADICIONALES PARA AN�LISIS DEL SISTEMA
+-- ============================================
 
--- Automatizaciones: vista general
-SELECT *
+-- Consulta 5: Automatizaciones activas por dispositivo
+SELECT 
+    dh.nombre_dispositivo,
+    dh.tipo_dispositivo,
+    dh.ubicacion,
+    COUNT(a.id_automatizacion) as total_automatizaciones,
+    COUNT(CASE WHEN a.activa = TRUE THEN 1 END) as automatizaciones_activas
+FROM dispositivos_hogar dh
+LEFT JOIN automatizaciones a ON dh.id_dispositivo = a.id_dispositivo
+GROUP BY dh.id_dispositivo, dh.nombre_dispositivo, dh.tipo_dispositivo, dh.ubicacion
+ORDER BY automatizaciones_activas DESC;
+
+-- Consulta 6: Consumo energ�tico por hogar
+SELECT 
+    h.id_hogar,
+    h.ubicacion,
+    h.tipo_de_vivienda,
+    COUNT(dh.id_dispositivo) as total_dispositivos,
+    SUM(CASE WHEN dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_actual,
+    SUM(dh.consumo_energetico) as consumo_maximo_posible,
+    ROUND(
+        (SUM(CASE WHEN dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) / 
+         SUM(dh.consumo_energetico)) * 100, 2
+    ) as porcentaje_uso_energia
+FROM hogares h
+LEFT JOIN dispositivos_hogar dh ON h.id_hogar = dh.id_hogar
+GROUP BY h.id_hogar, h.ubicacion, h.tipo_de_vivienda
+ORDER BY consumo_actual DESC;
+
+-- Consulta 7: Dispositivos esenciales vs no esenciales por hogar
+SELECT 
+    h.ubicacion as hogar,
+    COUNT(CASE WHEN dh.es_esencial = TRUE THEN 1 END) as dispositivos_esenciales,
+    COUNT(CASE WHEN dh.es_esencial = FALSE THEN 1 END) as dispositivos_no_esenciales,
+    SUM(CASE WHEN dh.es_esencial = TRUE AND dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_esenciales,
+    SUM(CASE WHEN dh.es_esencial = FALSE AND dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_no_esenciales
+FROM hogares h
+LEFT JOIN dispositivos_hogar dh ON h.id_hogar = dh.id_hogar
+GROUP BY h.id_hogar, h.ubicacion
+ORDER BY h.id_hogar;
+
+-- Consulta 8: Automatizaciones programadas por d�a de la semana
+SELECT 
+    a.dias_semana,
+    COUNT(*) as cantidad_automatizaciones,
+    COUNT(CASE WHEN a.activa = TRUE THEN 1 END) as automatizaciones_activas,
+    COUNT(DISTINCT a.id_dispositivo) as dispositivos_automatizados
+FROM automatizaciones a
+GROUP BY a.dias_semana
+ORDER BY cantidad_automatizaciones DESC;
+
+-- Consulta 9: Top 5 dispositivos con mayor consumo energ�tico
+SELECT 
+    dh.nombre_dispositivo,
+    dh.tipo_dispositivo,
+    dh.marca_dispositivo,
+    dh.ubicacion,
+    dh.consumo_energetico,
+    dh.estado_dispositivo,
+    h.ubicacion as hogar
+FROM dispositivos_hogar dh
+JOIN hogares h ON dh.id_hogar = h.id_hogar
+ORDER BY dh.consumo_energetico DESC
+LIMIT 5;
+
+-- Consulta 10: Usuarios administradores vs est�ndar y su actividad
+SELECT 
+    u.rol,
+    COUNT(*) as cantidad_usuarios,
+    AVG(TIME_TO_SEC(u.tiempo_de_conexion)) as tiempo_promedio_conexion_segundos,
+    COUNT(DISTINCT dh.id_dispositivo) as total_dispositivos_gestionados,
+    COUNT(DISTINCT dc.id_dispositivo_control) as sesiones_control_activas
+FROM usuarios u
+LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
+LEFT JOIN dispositivos_control dc ON u.id_usuario = dc.id_usuario_conectado
+GROUP BY u.rol
+ORDER BY cantidad_usuarios DESC;
+
+-- ============================================
+-- VISTAS PARA FACILITAR CONSULTAS RECURRENTES
+-- ============================================
+
+-- Vista 1: Resumen de dispositivos por usuario (reemplaza tabla desnormalizada)
+CREATE VIEW vista_resumen_dispositivos_usuario AS
+SELECT 
+    u.id_usuario,
+    u.mail,
+    u.rol,
+    COUNT(dh.id_dispositivo) as total_dispositivos,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'encendido' THEN 1 END) as dispositivos_activos,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'apagado' THEN 1 END) as dispositivos_apagados,
+    COUNT(CASE WHEN dh.estado_dispositivo = 'ahorro' THEN 1 END) as dispositivos_en_ahorro,
+    SUM(CASE WHEN dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_actual
+FROM usuarios u
+LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
+GROUP BY u.id_usuario, u.mail, u.rol;
+
+-- Vista 2: Automatizaciones activas con informaci�n del dispositivo
+CREATE VIEW vista_automatizaciones_activas AS
+SELECT 
+    a.id_automatizacion,
+    a.nombre_automatizacion,
+    a.tipo_automatizacion,
+    a.condicion_activacion,
+    a.accion,
+    a.hora_programada,
+    a.dias_semana,
+    dh.nombre_dispositivo,
+    dh.tipo_dispositivo,
+    dh.ubicacion,
+    h.ubicacion as hogar
+FROM automatizaciones a
+JOIN dispositivos_hogar dh ON a.id_dispositivo = dh.id_dispositivo
+JOIN hogares h ON dh.id_hogar = h.id_hogar
+WHERE a.activa = TRUE;
+
+-- ============================================
+-- CONSULTAS DE VALIDACI�N
+-- Verifican la integridad de los datos despu�s de las correcciones
+-- ============================================
+
+-- Verificaci�n 1: Contar automatizaciones (debe ser >= 10)
+SELECT 'Total automatizaciones' as descripcion, COUNT(*) as cantidad 
 FROM automatizaciones;
 
--- ============================================
--- CONSULTAS MULTITABLA
--- ============================================
+-- Verificaci�n 2: Confirmar que no existen campos derivados en dispositivos_control
+DESCRIBE dispositivos_control;
 
--- 1. Usuarios y su hogar (JOIN explícito)
--- Permite ver qué usuarios pertenecen a qué vivienda
-SELECT
-    u.id_usuario,
-    p.nombre,
-    u.rol,
-    h.ubicacion,
-    h.tipo_de_vivienda
-FROM usuarios u
-INNER JOIN perfiles p ON u.id_perfil = p.id_perfil
-INNER JOIN hogares h ON u.id_hogar = h.id_hogar;
-
--- 2. Dispositivos del hogar con el usuario responsable (JOIN implícito estilo WHERE)
--- Útil para saber qué usuario gestiona cada dispositivo
-SELECT
-    d.id_dispositivo,
-    d.nombre_dispositivo,
-    p.nombre AS usuario
-FROM dispositivos_hogar d, usuarios u, perfiles p
-WHERE d.id_hogar = u.id_hogar
-  AND u.id_perfil = p.id_perfil;
-
--- 3. Dispositivos de control con usuario y hogar
--- Permite auditar qué controles están activos en cada vivienda
-SELECT
-    dc.id_dispositivo_control,
-    dc.hora_de_conexion,
-    dc.dispositivos_activos,
-    p.nombre,
-    h.ubicacion
-FROM dispositivos_control dc
-JOIN usuarios u ON dc.id_usuario = u.id_usuario
-JOIN perfiles p ON u.id_perfil = p.id_perfil
-JOIN hogares h ON u.id_hogar = h.id_hogar;
-
--- 4. Automatizaciones y dispositivos asociados
--- Permite verificar qué reglas afectan a qué dispositivos
-SELECT
-    a.nombre AS automatizacion,
-    d.nombre_dispositivo,
-    d.tipo_dispositivo
+-- Verificaci�n 3: Verificar que todas las automatizaciones tienen un dispositivo v�lido
+SELECT 
+    'Automatizaciones con dispositivos v�lidos' as descripcion,
+    COUNT(a.id_automatizacion) as cantidad
 FROM automatizaciones a
-JOIN automatizacion_dispositivo ad ON a.id_automatizacion = ad.id_automatizacion
-JOIN dispositivos_hogar d ON ad.id_dispositivo = d.id_dispositivo;
-
--- ============================================
--- SUBCONSULTAS
--- ============================================
-
--- 1. Usuarios cuya edad es mayor al promedio de todos los usuarios
--- Caso de negocio: identificar usuarios senior
-SELECT
-    p.nombre,
-    u.rol,
-    u.id_usuario
-FROM usuarios u
-JOIN perfiles p ON u.id_perfil = p.id_perfil
-WHERE u.edad > (
-    SELECT AVG(edad)
-    FROM usuarios
-);
-
--- 2. Dispositivos cuyo consumo supera el promedio de su hogar
--- Caso de negocio: detectar dispositivos de alto consumo
-SELECT
-    d.id_dispositivo,
-    d.nombre_dispositivo,
-    d.consumo_energetico,
-    h.ubicacion
-FROM dispositivos_hogar d
-JOIN hogares h ON d.id_hogar = h.id_hogar
-WHERE d.consumo_energetico > (
-    SELECT AVG(d2.consumo_energetico)
-    FROM dispositivos_hogar d2
-    WHERE d2.id_hogar = d.id_hogar
-);
-
--- ============================================
--- CONSULTAS CON GROUP BY Y ORDER BY
--- ============================================
-
--- Cantidad de usuarios por rol
-SELECT rol, COUNT(*) AS cantidad
-FROM usuarios
-GROUP BY rol;
-
--- Consumo promedio por tipo de dispositivo
-SELECT tipo_dispositivo, AVG(consumo_energetico) AS promedio_consumo
-FROM dispositivos_hogar
-GROUP BY tipo_dispositivo;
-
--- Ordenar dispositivos por consumo descendente
-SELECT nombre_dispositivo, consumo_energetico
-FROM dispositivos_hogar
-ORDER BY consumo_energetico DESC;
+JOIN dispositivos_hogar dh ON a.id_dispositivo = dh.id_dispositivo;
+-- Fin del archivo queries.sql
