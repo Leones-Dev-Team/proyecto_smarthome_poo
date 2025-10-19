@@ -2,11 +2,14 @@ from typing import List, Optional, cast
 from dominio.dispositivo_hogar import DispositivoHogar
 from dao.interfaces.i_dispositivo_dao import IDispositivoDAO
 from connection.obtener_conexion import obtener_conexion
+from dao.hogar_dao import HogarDAO
 
 
 class DispositivoDAO(IDispositivoDAO):
     # Inserta un nuevo dispositivo en la base de datos
     def crear(self, dispositivo: DispositivoHogar) -> bool:
+        if not HogarDAO().existe(dispositivo.id_hogar):
+            raise ValueError("El hogar no existe.")
         query = """
         INSERT INTO dispositivos_hogar (id_dispositivo, id_hogar, nombre_dispositivo, tipo_dispositivo, 
                                        marca_dispositivo, estado_dispositivo, consumo_energetico, es_esencial)
@@ -144,3 +147,14 @@ class DispositivoDAO(IDispositivoDAO):
                         bool(es_esencial)
                     ))
         return dispositivos
+
+    def obtener_siguiente_id(self) -> int:
+        query = "SELECT COALESCE(MAX(id_dispositivo), 0) + 1 FROM dispositivos_hogar"
+        with obtener_conexion() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                result = cursor.fetchone()
+                if result is not None:
+                    (next_id,) = result
+                    return cast(int, next_id)
+                return 1

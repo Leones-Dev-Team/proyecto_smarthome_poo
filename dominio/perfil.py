@@ -12,11 +12,11 @@ class Perfil:
     def __init__(self, nombre: str, mail: str, telefono: str | None = None, id_perfil: int | None = None):
         self._validar_nombre(nombre)
         self._validar_mail(mail)
-        self._id_perfil = id_perfil
-        self._nombre = nombre
-        self._mail = mail
-        self._telefono = telefono
-        self._registro_actividad: List[str] = []
+        self.__id_perfil = id_perfil
+        self.__nombre = nombre
+        self.__mail = mail
+        self.__telefono = telefono
+        self.__registro_actividad: List[str] = []
 
     # ---- Validaciones internas ----
     @staticmethod
@@ -32,35 +32,35 @@ class Perfil:
     # ---- Propiedades con encapsulamiento ----
     @property
     def id_perfil(self) -> int | None:
-        return self._id_perfil
+        return self.__id_perfil
 
     @property
     def nombre(self) -> str:
-        return self._nombre
+        return self.__nombre
 
     @nombre.setter
     def nombre(self, nuevo_nombre: str):
         self._validar_nombre(nuevo_nombre)
-        self._nombre = nuevo_nombre
+        self.__nombre = nuevo_nombre
 
     @property
     def mail(self) -> str:
-        return self._mail
+        return self.__mail
 
     @mail.setter
     def mail(self, nuevo_mail: str):
         self._validar_mail(nuevo_mail)
-        self._mail = nuevo_mail
+        self.__mail = nuevo_mail
 
     @property
     def telefono(self) -> str | None:
-        return self._telefono
+        return self.__telefono
 
     @telefono.setter
     def telefono(self, nuevo_telefono: str | None):
         if nuevo_telefono and not isinstance(nuevo_telefono, str):
             raise ValueError("El telefono debe ser texto o None.")
-        self._telefono = nuevo_telefono
+        self.__telefono = nuevo_telefono
 
     # ---- Registro de actividad ----
     def registrar_actividad(self, actividad: str) -> None:
@@ -68,24 +68,24 @@ class Perfil:
             raise ValueError("Actividad invalida.")
         timestamp = datetime.now(timezone.utc).isoformat(
             timespec="seconds") + "Z"
-        self._registro_actividad.append(f"{timestamp} - {actividad.strip()}")
+        self.__registro_actividad.append(f"{timestamp} - {actividad.strip()}")
 
     @property
     def registro_actividad(self) -> Tuple[str, ...]:
-        return tuple(self._registro_actividad)
+        return tuple(self.__registro_actividad)
 
     def limpiar_registro(self):
-        self._registro_actividad.clear()
+        self.__registro_actividad.clear()
 
     # ---- Utilitarios ----
     def to_dict(self) -> dict:
         return {
-            "id_perfil": self._id_perfil,
-            "nombre": self._nombre,
-            "mail": self._mail,
-            "telefono": self._telefono,
-            "registro_actividad": list(self._registro_actividad),
+            "id_perfil": self.__id_perfil,
+            "nombre": self.__nombre,
+            "mail": self.__mail,
+            "telefono": self.__telefono,
+            "registro_actividad": list(self.__registro_actividad),
         }
 
     def __repr__(self) -> str:
-        return f"Perfil(id={self._id_perfil}, nombre={self._nombre!r}, mail={self._mail!r})"
+        return f"Perfil(id={self.__id_perfil}, nombre={self.__nombre!r}, mail={self.__mail!r})"
