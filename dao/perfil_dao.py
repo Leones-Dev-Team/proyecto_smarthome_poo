@@ -1,7 +1,7 @@
 from typing import List, Optional, cast
 from dominio.perfil import Perfil
 from dao.interfaces.i_perfil_dao import IPerfilDAO
-from connection.obtener_conexion import obtener_conexion
+from connection.obtener_conexion import DatabaseConnection
 
 
 class PerfilDAO(IPerfilDAO):
@@ -12,7 +12,7 @@ class PerfilDAO(IPerfilDAO):
         VALUES (%s, %s, %s, %s)
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         query,
@@ -32,7 +32,7 @@ class PerfilDAO(IPerfilDAO):
     # Recupera un perfil por su id, devolviendo None si no existe
     def leer(self, id_perfil: int) -> Optional[Perfil]:
         query = "SELECT nombre, mail, telefono, registro_actividad FROM perfiles WHERE id_perfil = %s"
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_perfil),))
                 row = cursor.fetchone()
@@ -57,7 +57,7 @@ class PerfilDAO(IPerfilDAO):
         WHERE id_perfil = %s
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         query,
@@ -79,7 +79,7 @@ class PerfilDAO(IPerfilDAO):
     def eliminar(self, id_perfil: int) -> bool:
         query = "DELETE FROM perfiles WHERE id_perfil = %s"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (int(id_perfil),))
                     conn.commit()
@@ -91,7 +91,7 @@ class PerfilDAO(IPerfilDAO):
     def obtener_todos(self) -> List[Perfil]:
         query = "SELECT id_perfil, nombre, mail, telefono, registro_actividad FROM perfiles"
         perfiles: List[Perfil] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 for id_perfil, nombre, mail, telefono, registro in cursor.fetchall():

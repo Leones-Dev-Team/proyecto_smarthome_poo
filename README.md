@@ -146,8 +146,8 @@ Los diagramas UML y sus análisis detallados se encuentran en:
 
 Archivos principales:  
 
-* `Justificacion_POO_UML_Diagrama_Clases.pdf` (EV5)  
-* `Justificacion_POO_UML_Diagrama_Clases.pdf` (EV6)
+* `EV5_Justificacion_POO_UML_Diagrama_Clases.pdf`
+* `EV6_Justificacion_POO_UML_Diagrama_Clases.pdf` 
 
 Incluyen explicación textual y código PlantUML.
 

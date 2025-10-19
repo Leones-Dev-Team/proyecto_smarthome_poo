@@ -2,7 +2,7 @@ from typing import List, Optional, cast
 from dominio.automatizacion import Automatizacion
 from dominio.dispositivo_hogar import DispositivoHogar
 from dao.interfaces.i_automatizacion_dao import IAutomatizacionDAO
-from connection.obtener_conexion import obtener_conexion
+from connection.obtener_conexion import DatabaseConnection
 
 
 class AutomatizacionDAO(IAutomatizacionDAO):
@@ -10,7 +10,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
     def crear(self, automatizacion: Automatizacion) -> int:
         query = "INSERT INTO automatizaciones (nombre) VALUES (%s)"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (str(automatizacion.nombre),))
                     conn.commit()
@@ -21,7 +21,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
     # Lee una automatización por id; si no existe, lanza ValueError
     def leer(self, id_automatizacion: int) -> Automatizacion:
         query = "SELECT nombre FROM automatizaciones WHERE id_automatizacion = %s"
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_automatizacion),))
                 row = cursor.fetchone()
@@ -36,7 +36,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
     def actualizar(self, automatizacion: Automatizacion) -> bool:
         query = "UPDATE automatizaciones SET nombre = %s WHERE id_automatizacion = %s"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         str(automatizacion.nombre),
@@ -51,7 +51,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
     def eliminar(self, id_automatizacion: int) -> bool:
         query = "DELETE FROM automatizaciones WHERE id_automatizacion = %s"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (int(id_automatizacion),))
                     conn.commit()
@@ -63,7 +63,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
     def obtener_todos(self) -> List[Automatizacion]:
         query = "SELECT id_automatizacion, nombre FROM automatizaciones"
         automatizaciones: List[Automatizacion] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
@@ -84,7 +84,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
         VALUES (%s, %s)
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         query, (int(id_automatizacion), int(id_dispositivo)))
@@ -100,7 +100,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
         WHERE id_automatizacion = %s AND id_dispositivo = %s
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         query, (int(id_automatizacion), int(id_dispositivo)))
@@ -119,7 +119,7 @@ class AutomatizacionDAO(IAutomatizacionDAO):
         WHERE ad.id_automatizacion = %s
         """
         dispositivos: List[DispositivoHogar] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_automatizacion),))
                 for row in cursor.fetchall():

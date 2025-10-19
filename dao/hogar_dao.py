@@ -1,7 +1,7 @@
 from typing import List, Optional, cast
 from dominio.hogar import Hogar
 from dao.interfaces.i_hogar_dao import IHogarDAO
-from connection.obtener_conexion import obtener_conexion
+from connection.obtener_conexion import DatabaseConnection
 
 
 # Implementación concreta de la interfaz IHogarDAO usando consultas SQL
@@ -14,7 +14,7 @@ class HogarDAO(IHogarDAO):
         VALUES (%s, %s, %s)
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         int(hogar.id_hogar),
@@ -33,7 +33,7 @@ class HogarDAO(IHogarDAO):
         FROM hogares
         WHERE id_hogar = %s
         """
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_hogar),))
                 row = cursor.fetchone()
@@ -50,7 +50,7 @@ class HogarDAO(IHogarDAO):
         WHERE id_hogar = %s
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         str(hogar.ubicacion),
@@ -66,7 +66,7 @@ class HogarDAO(IHogarDAO):
     def eliminar(self, id_hogar: int) -> bool:
         query = "DELETE FROM hogares WHERE id_hogar = %s"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (int(id_hogar),))
                     conn.commit()
@@ -81,7 +81,7 @@ class HogarDAO(IHogarDAO):
         FROM hogares
         """
         hogares: List[Hogar] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
@@ -97,7 +97,7 @@ class HogarDAO(IHogarDAO):
     # Obtiene el siguiente id disponible para insertar un nuevo hogar
     def obtener_siguiente_id(self) -> int:
         query = "SELECT COALESCE(MAX(id_hogar), 0) + 1 FROM hogares"
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchone()
