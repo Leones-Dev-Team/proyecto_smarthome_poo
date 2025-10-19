@@ -1,7 +1,7 @@
 from typing import List, Optional, cast
 from dominio.dispositivo_hogar import DispositivoHogar
 from dao.interfaces.i_dispositivo_dao import IDispositivoDAO
-from connection.obtener_conexion import obtener_conexion
+from connection.obtener_conexion import DatabaseConnection
 from dao.hogar_dao import HogarDAO
 
 
@@ -16,7 +16,7 @@ class DispositivoDAO(IDispositivoDAO):
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         int(dispositivo.id_dispositivo),
@@ -41,7 +41,7 @@ class DispositivoDAO(IDispositivoDAO):
         FROM dispositivos_hogar
         WHERE id_dispositivo = %s
         """
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_dispositivo),))
                 row = cursor.fetchone()
@@ -68,7 +68,7 @@ class DispositivoDAO(IDispositivoDAO):
         WHERE id_dispositivo = %s
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         int(dispositivo.id_hogar),
@@ -89,7 +89,7 @@ class DispositivoDAO(IDispositivoDAO):
     def eliminar(self, id_dispositivo: int) -> bool:
         query = "DELETE FROM dispositivos_hogar WHERE id_dispositivo = %s"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (int(id_dispositivo),))
                     conn.commit()
@@ -105,7 +105,7 @@ class DispositivoDAO(IDispositivoDAO):
         FROM dispositivos_hogar
         """
         dispositivos: List[DispositivoHogar] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
@@ -131,7 +131,7 @@ class DispositivoDAO(IDispositivoDAO):
         WHERE id_hogar = %s
         """
         dispositivos: List[DispositivoHogar] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_hogar),))
                 for row in cursor.fetchall():
@@ -150,7 +150,7 @@ class DispositivoDAO(IDispositivoDAO):
 
     def obtener_siguiente_id(self) -> int:
         query = "SELECT COALESCE(MAX(id_dispositivo), 0) + 1 FROM dispositivos_hogar"
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchone()
@@ -158,3 +158,4 @@ class DispositivoDAO(IDispositivoDAO):
                     (next_id,) = result
                     return cast(int, next_id)
                 return 1
+            

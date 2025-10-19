@@ -2,7 +2,7 @@ from typing import List, Optional, cast
 from dominio.usuario import Usuario
 from dominio.perfil import Perfil
 from dao.interfaces.i_usuario_dao import IUsuarioDAO
-from connection.obtener_conexion import obtener_conexion
+from connection.obtener_conexion import DatabaseConnection
 from dao.hogar_dao import HogarDAO
 
 
@@ -17,7 +17,7 @@ class UsuarioDAO(IUsuarioDAO):
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         int(usuario.id_usuario),
@@ -39,7 +39,7 @@ class UsuarioDAO(IUsuarioDAO):
         JOIN perfiles p ON u.id_perfil = p.id_perfil
         WHERE u.id_usuario = %s
         """
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (int(id_usuario),))
                 row = cursor.fetchone()
@@ -74,7 +74,7 @@ class UsuarioDAO(IUsuarioDAO):
         WHERE id_usuario = %s
         """
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (
                         str(usuario.verificar_clave),
@@ -92,7 +92,7 @@ class UsuarioDAO(IUsuarioDAO):
     def eliminar(self, id_usuario: int) -> bool:
         query = "DELETE FROM usuarios WHERE id_usuario = %s"
         try:
-            with obtener_conexion() as conn:
+            with DatabaseConnection().connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(query, (int(id_usuario),))
                     conn.commit()
@@ -107,7 +107,7 @@ class UsuarioDAO(IUsuarioDAO):
         JOIN perfiles p ON u.id_perfil = p.id_perfil
         """
         usuarios: List[Usuario] = []
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
@@ -142,7 +142,7 @@ class UsuarioDAO(IUsuarioDAO):
         JOIN perfiles p ON u.id_perfil = p.id_perfil
         WHERE p.mail = %s
         """
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (email,))
                 row = cursor.fetchone()
@@ -173,7 +173,7 @@ class UsuarioDAO(IUsuarioDAO):
 
     def obtener_siguiente_id(self) -> int:
         query = "SELECT COALESCE(MAX(id_usuario), 0) + 1 FROM usuarios"
-        with obtener_conexion() as conn:
+        with DatabaseConnection().connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchone()
