@@ -1,11 +1,13 @@
 -- ============================================
 -- ARCHIVO: QUERIES.SQL
--- Consultas din�micas para el sistema Smart Home
+-- Consultas dinámicas para el sistema Smart Home
 -- ============================================
+
+USE smarthome;
 
 -- ============================================
 -- CONSULTAS PARA REEMPLAZAR DATOS DERIVADOS
--- Calculan din�micamente la informaci�n que antes se almacenaba en dispositivos_control
+-- Calculan dinámicamente la información que antes se almacenaba en dispositivos_control
 -- ============================================
 
 -- Consulta 1: Contar dispositivos activos por usuario
@@ -42,7 +44,7 @@ GROUP BY u.id_usuario, u.mail
 ORDER BY u.id_usuario;
 
 -- Consulta 4: Resumen completo de estados de dispositivos por usuario
--- Combina toda la informaci�n que antes se almacenaba como datos derivados
+-- Combina toda la información que antes se almacenaba como datos derivados
 SELECT 
     u.id_usuario,
     u.mail,
@@ -60,7 +62,7 @@ GROUP BY u.id_usuario, u.mail, u.rol, dc.hora_de_conexion
 ORDER BY u.id_usuario;
 
 -- ============================================
--- CONSULTAS ADICIONALES PARA AN�LISIS DEL SISTEMA
+-- CONSULTAS ADICIONALES PARA ANÁLISIS DEL SISTEMA
 -- ============================================
 
 -- Consulta 5: Automatizaciones activas por dispositivo
@@ -75,7 +77,7 @@ LEFT JOIN automatizaciones a ON dh.id_dispositivo = a.id_dispositivo
 GROUP BY dh.id_dispositivo, dh.nombre_dispositivo, dh.tipo_dispositivo, dh.ubicacion
 ORDER BY automatizaciones_activas DESC;
 
--- Consulta 6: Consumo energ�tico por hogar
+-- Consulta 6: Consumo energético por hogar
 SELECT 
     h.id_hogar,
     h.ubicacion,
@@ -104,7 +106,7 @@ LEFT JOIN dispositivos_hogar dh ON h.id_hogar = dh.id_hogar
 GROUP BY h.id_hogar, h.ubicacion
 ORDER BY h.id_hogar;
 
--- Consulta 8: Automatizaciones programadas por d�a de la semana
+-- Consulta 8: Automatizaciones programadas por día de la semana
 SELECT 
     a.dias_semana,
     COUNT(*) as cantidad_automatizaciones,
@@ -114,7 +116,7 @@ FROM automatizaciones a
 GROUP BY a.dias_semana
 ORDER BY cantidad_automatizaciones DESC;
 
--- Consulta 9: Top 5 dispositivos con mayor consumo energ�tico
+-- Consulta 9: Top 5 dispositivos con mayor consumo energético
 SELECT 
     dh.nombre_dispositivo,
     dh.tipo_dispositivo,
@@ -128,7 +130,7 @@ JOIN hogares h ON dh.id_hogar = h.id_hogar
 ORDER BY dh.consumo_energetico DESC
 LIMIT 5;
 
--- Consulta 10: Usuarios administradores vs est�ndar y su actividad
+-- Consulta 10: Usuarios administradores vs estándar y su actividad
 SELECT 
     u.rol,
     COUNT(*) as cantidad_usuarios,
@@ -146,7 +148,7 @@ ORDER BY cantidad_usuarios DESC;
 -- ============================================
 
 -- Vista 1: Resumen de dispositivos por usuario (reemplaza tabla desnormalizada)
-CREATE VIEW vista_resumen_dispositivos_usuario AS
+CREATE OR REPLACE VIEW vista_resumen_dispositivos_usuario AS
 SELECT 
     u.id_usuario,
     u.mail,
@@ -160,8 +162,8 @@ FROM usuarios u
 LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
 GROUP BY u.id_usuario, u.mail, u.rol;
 
--- Vista 2: Automatizaciones activas con informaci�n del dispositivo
-CREATE VIEW vista_automatizaciones_activas AS
+-- Vista 2: Automatizaciones activas con información del dispositivo
+CREATE OR REPLACE VIEW vista_automatizaciones_activas AS
 SELECT 
     a.id_automatizacion,
     a.nombre_automatizacion,
@@ -180,20 +182,20 @@ JOIN hogares h ON dh.id_hogar = h.id_hogar
 WHERE a.activa = TRUE;
 
 -- ============================================
--- CONSULTAS DE VALIDACI�N
--- Verifican la integridad de los datos despu�s de las correcciones
+-- CONSULTAS DE VALIDACIÓN
+-- Verifican la integridad de los datos después de las correcciones
 -- ============================================
 
--- Verificaci�n 1: Contar automatizaciones (debe ser >= 10)
+-- Verificación 1: Contar automatizaciones (debe ser >= 10)
 SELECT 'Total automatizaciones' as descripcion, COUNT(*) as cantidad 
 FROM automatizaciones;
 
--- Verificaci�n 2: Confirmar que no existen campos derivados en dispositivos_control
+-- Verificación 2: Confirmar que no existen campos derivados en dispositivos_control
 DESCRIBE dispositivos_control;
 
--- Verificaci�n 3: Verificar que todas las automatizaciones tienen un dispositivo v�lido
+-- Verificación 3: Verificar que todas las automatizaciones tienen un dispositivo válido
 SELECT 
-    'Automatizaciones con dispositivos v�lidos' as descripcion,
+    'Automatizaciones con dispositivos válidos' as descripcion,
     COUNT(a.id_automatizacion) as cantidad
 FROM automatizaciones a
 JOIN dispositivos_hogar dh ON a.id_dispositivo = dh.id_dispositivo;

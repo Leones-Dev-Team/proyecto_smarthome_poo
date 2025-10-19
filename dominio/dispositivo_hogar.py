@@ -13,58 +13,58 @@ class DispositivoHogar:
             raise ValueError("Los campos obligatorios no pueden estar vacios.")
         if estado_dispositivo not in ["encendido", "apagado"]:
             raise ValueError("El estado debe ser 'encendido' o 'apagado'.")
-        self._id_dispositivo = id_dispositivo
-        self._id_hogar = id_hogar
-        self._nombre = nombre
-        self._tipo = tipo
-        self._marca = marca
-        self._estado_dispositivo = estado_dispositivo
-        self._consumo_energetico = consumo_energetico
-        self._es_esencial = es_esencial
+        self.__id_dispositivo = id_dispositivo
+        self.__id_hogar = id_hogar
+        self.__nombre = nombre
+        self.__tipo = tipo
+        self.__marca = marca
+        self.__estado_dispositivo = estado_dispositivo
+        self.__consumo_energetico = consumo_energetico
+        self.__es_esencial = es_esencial
 
     # --- Encapsulamiento ---
     @property
     def id_dispositivo(self) -> int:
-        return self._id_dispositivo
+        return self.__id_dispositivo
 
     @property
     def id_hogar(self) -> int:
-        return self._id_hogar
+        return self.__id_hogar
 
     @property
     def nombre(self) -> str:
-        return self._nombre
+        return self.__nombre
 
     @property
     def tipo(self) -> str:
-        return self._tipo
+        return self.__tipo
 
     @property
     def marca(self) -> str | None:
-        return self._marca
+        return self.__marca
 
     @property
     def estado_dispositivo(self) -> str:
-        return self._estado_dispositivo
+        return self.__estado_dispositivo
 
     @property
     def consumo_energetico(self) -> float:
-        return self._consumo_energetico
+        return self.__consumo_energetico
 
     @property
     def es_esencial(self) -> bool:
-        return self._es_esencial
+        return self.__es_esencial
 
     # --- Métodos de control ---
     def encender(self):
-        self._estado_dispositivo = "encendido"
+        self.__estado_dispositivo = "encendido"
 
     def apagar(self):
-        self._estado_dispositivo = "apagado"
+        self.__estado_dispositivo = "apagado"
 
     def toggle(self):
-        self._estado_dispositivo = "apagado" if self._estado_dispositivo == "encendido" else "encendido"
+        self.__estado_dispositivo = "apagado" if self.__estado_dispositivo == "encendido" else "encendido"
 
     # --- Utilitario ---
     def __repr__(self):
-        return f"<Dispositivo {self._nombre} ({self._tipo}) [Estado: {self._estado_dispositivo}, Consumo: {self._consumo_energetico}W]>"
+        return f"<Dispositivo {self.__nombre} ({self.__tipo}) [Estado: {self.__estado_dispositivo}, Consumo: {self.__consumo_energetico}W]>"

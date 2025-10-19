@@ -1,4 +1,12 @@
 -- ============================================
+-- BASE DE DATOS: SMART HOME
+-- Script de inicialización (init.sql)
+-- ============================================
+
+CREATE DATABASE smarthome;
+USE smarthome;
+
+-- ============================================
 -- SECCIÓN: TABLAS PRINCIPALES
 -- Definición de entidades y relaciones
 -- ============================================
