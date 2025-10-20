@@ -17,12 +17,12 @@ def test_setters_validos(perfil):
 
 
 def test_setters_invalidos(perfil):
-    with pytest.raises(ValueError, match="El nombre debe ser una cadena no vacia."):
+    with pytest.raises(ValueError, match="El nombre debe ser una cadena no vacía."):
         perfil.nombre = ""
-    with pytest.raises(ValueError, match="El mail debe ser una direccion valida."):
+    with pytest.raises(ValueError, match="El mail debe ser una dirección válida."):
         perfil.mail = "correo-invalido"
-    with pytest.raises(ValueError, match="El telefono debe ser texto o None."):
-        perfil.telefono = 12345  # no es str ni None
+    with pytest.raises(ValueError, match="El teléfono debe ser texto o None."):
+        perfil.telefono = 12345
 
 
 def test_registrar_actividad(perfil):
@@ -38,14 +38,27 @@ def test_registro_es_inmutable(perfil):
     perfil.registrar_actividad("Prueba")
     log = perfil.registro_actividad
     with pytest.raises(AttributeError):
-        log.append("No deberia poder")  # tuple no tiene append
-    assert len(perfil.registro_actividad) == 1  # intacto
+        log.append("No deberia poder")
+    assert len(perfil.registro_actividad) == 1
 
 
 def test_limpiar_registro(perfil):
     perfil.registrar_actividad("Algo")
     assert len(perfil.registro_actividad) == 1
     perfil.limpiar_registro()
+    assert len(perfil.registro_actividad) == 0
+
+
+def test_cargar_registro(perfil):
+    registro_str = "2025-01-01T10:00:00Z - Login, 2025-01-01T11:00:00Z - Configuracion"
+    perfil.cargar_registro(registro_str)
+
+    actividades = perfil.registro_actividad
+    assert len(actividades) == 2
+    assert "Login" in actividades[0]
+    assert "Configuracion" in actividades[1]
+
+    perfil.cargar_registro("")
     assert len(perfil.registro_actividad) == 0
 
 
@@ -64,3 +77,14 @@ def test_repr(perfil):
     assert "Perfil" in r
     assert "Ana" in r
     assert "ana@mail.com" in r
+
+
+def test_id_perfil_default_y_setter():
+    p = Perfil(nombre="Luis", mail="luis@mail.com")
+    assert p.id_perfil == 0
+    p.id_perfil = 10
+    assert p.id_perfil == 10
+    with pytest.raises(ValueError):
+        p.id_perfil = -5
+    with pytest.raises(ValueError):
+        p.id_perfil = "no-int"  # type: ignore

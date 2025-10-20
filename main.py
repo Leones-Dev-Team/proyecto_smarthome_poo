@@ -97,7 +97,7 @@ def registrar_usuario_estandar():
             print("El nombre no puede estar vacío.")
             return
 
-        correo = input("Ingrese correo: ")
+        correo = input("Ingrese correo: ").strip().lower()
         if not validar_email(correo):
             print("Correo inválido.")
             return
@@ -121,12 +121,10 @@ def registrar_usuario_estandar():
             print("Hogar no encontrado.")
             return
 
+        # Construir el perfil, sin insertarlo aquí
         perfil = Perfil(nombre, correo, telefono)
-        id_perfil = perfil_dao.crear(perfil)
-        if not id_perfil:
-            print("Error al crear perfil.")
-            return
 
+        # Crear usuario; UsuarioDAO se encargará de crear el perfil y asociarlo
         usuario = Usuario(id_usuario, clave, "estandar",
                           perfil, id_hogar, edad)
         if usuario_dao.crear(usuario):

@@ -4,29 +4,33 @@ from dao.interfaces.i_hogar_dao import IHogarDAO
 from connection.obtener_conexion import DatabaseConnection
 
 
-# Implementación concreta de la interfaz IHogarDAO usando consultas SQL
 class HogarDAO(IHogarDAO):
 
-    # Inserta un nuevo hogar en la base de datos
     def crear(self, hogar: Hogar) -> bool:
         query = """
         INSERT INTO hogares (id_hogar, ubicacion, tipo_de_vivienda)
         VALUES (%s, %s, %s)
         """
         try:
+            ubicacion = hogar.ubicacion.strip()
+            tipo = hogar.tipo_de_vivienda.strip()
             with DatabaseConnection().connect() as conn:
-                with conn.cursor() as cursor:
+                with conn.cursor(buffered=True) as cursor:
                     cursor.execute(query, (
                         int(hogar.id_hogar),
-                        str(hogar.ubicacion),
-                        str(hogar.tipo_de_vivienda)
+                        ubicacion,
+                        tipo
                     ))
                     conn.commit()
-                    return cursor.rowcount > 0
+                    if cursor.rowcount > 0:
+                        print("Hogar creado correctamente.")
+                        return True
+                    print("No se pudo crear el hogar.")
+                    return False
         except Exception:
+            print("Error al crear el hogar.")
             return False
 
-    # Recupera un hogar por su id, devolviendo un objeto Hogar o None
     def leer(self, id_hogar: int) -> Optional[Hogar]:
         query = """
         SELECT ubicacion, tipo_de_vivienda
@@ -34,15 +38,15 @@ class HogarDAO(IHogarDAO):
         WHERE id_hogar = %s
         """
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query, (int(id_hogar),))
                 row = cursor.fetchone()
                 if row:
                     ubicacion, tipo = row
                     return Hogar(int(id_hogar), str(ubicacion), str(tipo))
+                print("No se encontró el hogar solicitado.")
                 return None
 
-    # Actualiza los datos de un hogar existente
     def actualizar(self, hogar: Hogar) -> bool:
         query = """
         UPDATE hogares
@@ -50,31 +54,41 @@ class HogarDAO(IHogarDAO):
         WHERE id_hogar = %s
         """
         try:
+            ubicacion = hogar.ubicacion.strip()
+            tipo = hogar.tipo_de_vivienda.strip()
             with DatabaseConnection().connect() as conn:
-                with conn.cursor() as cursor:
+                with conn.cursor(buffered=True) as cursor:
                     cursor.execute(query, (
-                        str(hogar.ubicacion),
-                        str(hogar.tipo_de_vivienda),
+                        ubicacion,
+                        tipo,
                         int(hogar.id_hogar)
                     ))
                     conn.commit()
-                    return cursor.rowcount > 0
+                    if cursor.rowcount > 0:
+                        print("Hogar actualizado correctamente.")
+                        return True
+                    print("No se encontró el hogar para actualizar.")
+                    return False
         except Exception:
+            print("Error al actualizar el hogar.")
             return False
 
-    # Elimina un hogar de la base de datos por id
     def eliminar(self, id_hogar: int) -> bool:
         query = "DELETE FROM hogares WHERE id_hogar = %s"
         try:
             with DatabaseConnection().connect() as conn:
-                with conn.cursor() as cursor:
+                with conn.cursor(buffered=True) as cursor:
                     cursor.execute(query, (int(id_hogar),))
                     conn.commit()
-                    return cursor.rowcount > 0
+                    if cursor.rowcount > 0:
+                        print("Hogar eliminado correctamente.")
+                        return True
+                    print("No se encontró el hogar para eliminar.")
+                    return False
         except Exception:
+            print("Error al eliminar el hogar.")
             return False
 
-    # Obtiene todos los hogares registrados en la base de datos
     def obtener_todos(self) -> List[Hogar]:
         query = """
         SELECT id_hogar, ubicacion, tipo_de_vivienda
@@ -82,23 +96,24 @@ class HogarDAO(IHogarDAO):
         """
         hogares: List[Hogar] = []
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
                     id_hogar, ubicacion, tipo = row
-                    hogares.append(Hogar(cast(int, id_hogar),
-                                   str(ubicacion), str(tipo)))
+                    hogares.append(Hogar(
+                        cast(int, id_hogar),
+                        str(ubicacion),
+                        str(tipo)
+                    ))
         return hogares
 
-    # Verifica si un hogar existe consultando por id
     def existe(self, id_hogar: int) -> bool:
         return self.leer(id_hogar) is not None
 
-    # Obtiene el siguiente id disponible para insertar un nuevo hogar
     def obtener_siguiente_id(self) -> int:
         query = "SELECT COALESCE(MAX(id_hogar), 0) + 1 FROM hogares"
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query)
                 result = cursor.fetchone()
                 if result is not None:

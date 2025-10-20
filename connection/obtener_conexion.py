@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import errorcode, Error  # Añadir errorcode al import
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 
 
@@ -21,12 +22,12 @@ class DatabaseConnection:
     """
 
     def __init__(self):
-        load_dotenv()
+        env_path = Path(__file__).resolve().parent.parent / "db_connection.env"
+        load_dotenv(dotenv_path=env_path)
         self.host = os.getenv('DB_HOST', 'localhost')
         self.user = os.getenv('DB_USER')
         self.password = os.getenv('DB_PASSWORD', '')
         self.database = os.getenv('DB_DATABASE', 'smarthome')
-        self.connection = None
         self._validate_config()
 
     def _validate_config(self):
@@ -41,20 +42,17 @@ class DatabaseConnection:
 
     def connect(self):
         """
-        Establece y devuelve una conexión a la base de datos.
-        Reutiliza la conexión existente si está activa.
+        Establece y devuelve SIEMPRE una nueva conexión a la base de datos.
         """
-        if self.connection and self.connection.is_connected():
-            return self.connection
         try:
-            self.connection = mysql.connector.connect(
+            return mysql.connector.connect(
                 host=self.host,
                 user=self.user,
                 password=self.password,
                 database=self.database,
-                connection_timeout=10
+                connection_timeout=10,
+                autocommit=False
             )
-            return self.connection
         except Error as e:
             if e.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 raise ConnectionError(
@@ -66,12 +64,11 @@ class DatabaseConnection:
                 raise ConnectionError(
                     f"Error conectando a la base de datos: {e}")
 
-    def close(self):
-        """Cierra la conexión si está activa."""
-        if self.connection and self.connection.is_connected():
+    def close(self, conn):
+        """Cierra la conexión recibida si está activa."""
+        if conn and conn.is_connected():
             try:
-                self.connection.close()
-                self.connection = None
+                conn.close()
             except Error as e:
                 print(f"Error al cerrar la conexión: {e}")
 

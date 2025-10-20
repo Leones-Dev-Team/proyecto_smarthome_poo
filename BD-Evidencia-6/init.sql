@@ -3,6 +3,7 @@
 -- Script de inicialización (init.sql)
 -- ============================================
 
+DROP DATABASE IF EXISTS smarthome;
 CREATE DATABASE smarthome;
 USE smarthome;
 
@@ -20,18 +21,26 @@ CREATE TABLE hogares (
     tipo_de_vivienda VARCHAR(50)
 );
 
--- Tabla de usuarios (relacionada con hogares)
+-- Tabla de perfiles (datos personales de los usuarios)
+CREATE TABLE perfiles (
+    id_perfil INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    mail VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(20),
+    registro_actividad TEXT
+);
+
+-- Tabla de usuarios (relacionada con hogares y perfiles)
 CREATE TABLE usuarios (
     id_usuario INT PRIMARY KEY,
-    clave VARCHAR(50) NOT NULL,
+    clave VARCHAR(255) NOT NULL,
     tiempo_de_conexion TIME,
     edad INT,
-    mail VARCHAR(100),
-    telefono VARCHAR(20),
-    registro_actividad VARCHAR(100),
     rol VARCHAR(20),
     id_hogar INT NOT NULL,
-    FOREIGN KEY (id_hogar) REFERENCES hogares(id_hogar)
+    id_perfil INT NOT NULL,
+    FOREIGN KEY (id_hogar) REFERENCES hogares(id_hogar),
+    FOREIGN KEY (id_perfil) REFERENCES perfiles(id_perfil)
 );
 
 -- Tabla de dispositivos de control (relacionada con usuarios)
@@ -89,18 +98,32 @@ INSERT INTO hogares VALUES
 (4, 'Registro inicial hogar 4', '00:30:00', 'Mendoza', 'Departamento'),
 (5, 'Registro inicial hogar 5', '01:00:00', 'Salta', 'Casa');
 
+-- Insertar perfiles (10 registros)
+INSERT INTO perfiles (nombre, mail, telefono, registro_actividad) VALUES
+('Lucas', 'lucas@example.com', '3511111111', 'Inicio de sesión'),
+('Ana', 'ana@example.com', '3512222222', 'Inicio de sesión'),
+('Juan', 'juan@example.com', '3513333333', 'Inicio de sesión'),
+('María', 'maria@example.com', '3514444444', 'Inicio de sesión'),
+('Pedro', 'pedro@example.com', '3515555555', 'Inicio de sesión'),
+('Sofía', 'sofia@example.com', '3516666666', 'Inicio de sesión'),
+('Diego', 'diego@example.com', '3517777777', 'Inicio de sesión'),
+('Laura', 'laura@example.com', '3518888888', 'Inicio de sesión'),
+('Martín', 'martin@example.com', '3519999999', 'Inicio de sesión'),
+('Carla', 'carla@example.com', '3510000000', 'Inicio de sesión');
+
 -- Insertar usuarios (10 registros)
+-- Nota: ahora cada usuario referencia a un id_perfil (1..10)
 INSERT INTO usuarios VALUES
-(1, '1234', '00:30:00', 30, 'lucas@example.com', '3511111111', 'Inicio de sesión', 'admin', 1),
-(2, 'abcd', '00:20:00', 25, 'ana@example.com', '3512222222', 'Inicio de sesión', 'estándar', 1),
-(3, 'pass', '00:15:00', 40, 'juan@example.com', '3513333333', 'Inicio de sesión', 'admin', 2),
-(4, 'clave', '00:50:00', 35, 'maria@example.com', '3514444444', 'Inicio de sesión', 'estándar', 2),
-(5, 'xyz', '00:10:00', 28, 'pedro@example.com', '3515555555', 'Inicio de sesión', 'admin', 3),
-(6, 'pass1', '00:25:00', 32, 'sofia@example.com', '3516666666', 'Inicio de sesión', 'estándar', 3),
-(7, 'pass2', '00:40:00', 45, 'diego@example.com', '3517777777', 'Inicio de sesión', 'admin', 4),
-(8, 'pass3', '00:35:00', 29, 'laura@example.com', '3518888888', 'Inicio de sesión', 'estándar', 4),
-(9, 'pass4', '00:12:00', 33, 'martin@example.com', '3519999999', 'Inicio de sesión', 'admin', 5),
-(10, 'pass5', '00:55:00', 27, 'carla@example.com', '3510000000', 'Inicio de sesión', 'estándar', 5);
+(1, '1234', '00:30:00', 30, 'admin', 1, 1),
+(2, 'abcd', '00:20:00', 25, 'estándar', 1, 2),
+(3, 'pass', '00:15:00', 40, 'admin', 2, 3),
+(4, 'clave', '00:50:00', 35, 'estándar', 2, 4),
+(5, 'xyz', '00:10:00', 28, 'admin', 3, 5),
+(6, 'pass1', '00:25:00', 32, 'estándar', 3, 6),
+(7, 'pass2', '00:40:00', 45, 'admin', 4, 7),
+(8, 'pass3', '00:35:00', 29, 'estándar', 4, 8),
+(9, 'pass4', '00:12:00', 33, 'admin', 5, 9),
+(10, 'pass5', '00:55:00', 27, 'estándar', 5, 10);
 
 -- Insertar dispositivos de control (5 registros)
 INSERT INTO dispositivos_control VALUES

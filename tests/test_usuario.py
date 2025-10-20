@@ -29,6 +29,12 @@ def test_cambiar_rol_invalido(usuario):
         usuario.rol = "otro"
 
 
+def test_propiedad_clave(usuario):
+    assert usuario.clave == "1234"
+    usuario.cambiar_clave("nueva")
+    assert usuario.clave == "nueva"
+
+
 def test_cambiar_clave_valida(usuario):
     usuario.cambiar_clave("abcd")
     assert usuario.verificar_clave("abcd") is True
@@ -37,7 +43,7 @@ def test_cambiar_clave_valida(usuario):
 
 
 def test_cambiar_clave_invalida(usuario):
-    with pytest.raises(ValueError, match="La nueva clave no puede estar vacia."):
+    with pytest.raises(ValueError, match="La nueva clave no puede estar vacía."):
         usuario.cambiar_clave("")
 
 
