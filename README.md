@@ -44,16 +44,22 @@ proyecto_smarthome_poo/
 ├── dao/
 │   ├── usuario_dao.py
 │   ├── perfil_dao.py
+│   ├── hogar_dao.py
 │   ├── dispositivo_dao.py
 │   ├── automatizacion_dao.py
 │   └── interfaces/
 │       ├── i_usuario_dao.py
 │       ├── i_perfil_dao.py
+│       ├── i_hogar_dao.py
 │       ├── i_dispositivo_dao.py
 │       └── i_automatizacion_dao.py
 │
 ├── connection/
 │   └── obtener_conexion.py
+│
+├── tests/
+│   ├── test_usuario.py
+│   └── test_perfil.py
 │
 ├── BD-Evidencia-5/
 │   ├── init.sql
@@ -66,13 +72,10 @@ proyecto_smarthome_poo/
 │   └── README.md
 │
 ├── DC-Evidencia-5/
-│   └── Justificacion_POO_UML_Diagrama_Clases.pdf
+│   └── EV5_Justificacion_POO_UML_Diagrama_Clases.pdf
 │
 └── DC-Evidencia-6/
-    ├── init.sql
-    ├── queries.sql
-    ├── README.md
-    └── Justificacion_POO_UML_Diagrama_Clases.pdf
+    └── EV6_Justificacion_POO_UML_Diagrama_Clases.pdf
 ```
 
 ---
@@ -93,19 +96,19 @@ proyecto_smarthome_poo/
 ## 🧠 Principios Aplicados
 
 * **Encapsulamiento:**  
-  Todos los atributos internos son privados (`_atributo`) con acceso controlado mediante `@property`.
+  Todos los atributos internos son privados (`__atributo`) con acceso controlado mediante `@property` y validaciones en los setters.
 
 * **SRP (Responsabilidad Única):**  
   Cada clase tiene una única responsabilidad (ej. `Usuario` gestiona credenciales y rol, `Perfil` maneja datos personales, `DAO` maneja persistencia).
 
 * **Abstracción:**  
-  Cada clase modela una entidad real del sistema domótico, ocultando detalles internos.
+  Cada clase modela una entidad real del sistema domótico, ocultando detalles internos y exponiendo solo lo necesario.
 
 * **Modularidad:**  
-  Cada clase y DAO se encuentra en su propio archivo dentro de `dominio/` y `dao/`.
+  Cada clase y DAO se encuentra en su propio archivo dentro de `dominio/` y `dao/`, lo que facilita el mantenimiento y la escalabilidad.
 
 * **Patrón DAO:**  
-  Se implementaron interfaces (`IUsuarioDAO`, `IPerfilDAO`, etc.) y sus implementaciones concretas para separar lógica de negocio y acceso a datos.
+  Se implementaron interfaces (`IUsuarioDAO`, `IPerfilDAO`, `IHogarDAO`, `IDispositivoDAO`, `IAutomatizacionDAO`) y sus implementaciones concretas para separar la lógica de negocio del acceso a datos.
 
 ---
 
@@ -147,7 +150,7 @@ Los diagramas UML y sus análisis detallados se encuentran en:
 Archivos principales:  
 
 * `EV5_Justificacion_POO_UML_Diagrama_Clases.pdf`
-* `EV6_Justificacion_POO_UML_Diagrama_Clases.pdf` 
+* `EV6_Justificacion_POO_UML_Diagrama_Clases.pdf`
 
 Incluyen explicación textual y código PlantUML.
 
