@@ -9,10 +9,10 @@ class Perfil:
     Encapsula datos personales y mantiene el registro de actividad.
     """
 
-    def __init__(self, nombre: str, mail: str, telefono: str | None = None, id_perfil: int | None = None):
+    def __init__(self, nombre: str, mail: str, telefono: str | None = None, id_perfil: int = 0):
         self._validar_nombre(nombre)
         self._validar_mail(mail)
-        self.__id_perfil = id_perfil
+        self.__id_perfil: int = id_perfil  # siempre int, 0 si aún no está en DB
         self.__nombre = nombre
         self.__mail = mail
         self.__telefono = telefono
@@ -22,17 +22,23 @@ class Perfil:
     @staticmethod
     def _validar_nombre(nombre: str):
         if not isinstance(nombre, str) or not nombre.strip():
-            raise ValueError("El nombre debe ser una cadena no vacia.")
+            raise ValueError("El nombre debe ser una cadena no vacía.")
 
     @staticmethod
     def _validar_mail(mail: str):
         if not isinstance(mail, str) or "@" not in mail or not mail.strip():
-            raise ValueError("El mail debe ser una direccion valida.")
+            raise ValueError("El mail debe ser una dirección válida.")
 
     # ---- Propiedades con encapsulamiento ----
     @property
-    def id_perfil(self) -> int | None:
+    def id_perfil(self) -> int:
         return self.__id_perfil
+
+    @id_perfil.setter
+    def id_perfil(self, nuevo_id: int) -> None:
+        if not isinstance(nuevo_id, int) or nuevo_id < 0:
+            raise ValueError("El id_perfil debe ser un entero no negativo.")
+        self.__id_perfil = nuevo_id
 
     @property
     def nombre(self) -> str:
@@ -59,13 +65,13 @@ class Perfil:
     @telefono.setter
     def telefono(self, nuevo_telefono: str | None):
         if nuevo_telefono and not isinstance(nuevo_telefono, str):
-            raise ValueError("El telefono debe ser texto o None.")
+            raise ValueError("El teléfono debe ser texto o None.")
         self.__telefono = nuevo_telefono
 
     # ---- Registro de actividad ----
     def registrar_actividad(self, actividad: str) -> None:
         if not actividad or not isinstance(actividad, str):
-            raise ValueError("Actividad invalida.")
+            raise ValueError("Actividad inválida.")
         timestamp = datetime.now(timezone.utc).isoformat(
             timespec="seconds") + "Z"
         self.__registro_actividad.append(f"{timestamp} - {actividad.strip()}")
@@ -76,6 +82,12 @@ class Perfil:
 
     def limpiar_registro(self):
         self.__registro_actividad.clear()
+
+    def cargar_registro(self, registro: str) -> None:
+        if registro:
+            self.__registro_actividad = registro.split(", ")
+        else:
+            self.__registro_actividad = []
 
     # ---- Utilitarios ----
     def to_dict(self) -> dict:

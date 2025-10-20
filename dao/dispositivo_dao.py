@@ -6,34 +6,42 @@ from dao.hogar_dao import HogarDAO
 
 
 class DispositivoDAO(IDispositivoDAO):
-    # Inserta un nuevo dispositivo en la base de datos
     def crear(self, dispositivo: DispositivoHogar) -> bool:
         if not HogarDAO().existe(dispositivo.id_hogar):
-            raise ValueError("El hogar no existe.")
+            print("El hogar seleccionado no existe.")
+            return False
         query = """
         INSERT INTO dispositivos_hogar (id_dispositivo, id_hogar, nombre_dispositivo, tipo_dispositivo, 
                                        marca_dispositivo, estado_dispositivo, consumo_energetico, es_esencial)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         try:
+            nombre = dispositivo.nombre.strip()
+            tipo = dispositivo.tipo.strip()
+            marca = dispositivo.marca.strip() if dispositivo.marca else None
+            estado = dispositivo.estado_dispositivo.strip()
             with DatabaseConnection().connect() as conn:
-                with conn.cursor() as cursor:
+                with conn.cursor(buffered=True) as cursor:
                     cursor.execute(query, (
                         int(dispositivo.id_dispositivo),
                         int(dispositivo.id_hogar),
-                        str(dispositivo.nombre),
-                        str(dispositivo.tipo),
-                        str(dispositivo.marca) if dispositivo.marca is not None else None,
-                        str(dispositivo.estado_dispositivo),
+                        nombre,
+                        tipo,
+                        marca,
+                        estado,
                         float(dispositivo.consumo_energetico),
                         bool(dispositivo.es_esencial)
                     ))
                     conn.commit()
-                    return cursor.rowcount > 0
+                    if cursor.rowcount > 0:
+                        print("Dispositivo creado correctamente.")
+                        return True
+                    print("No se pudo crear el dispositivo.")
+                    return False
         except Exception:
+            print("Error al crear el dispositivo.")
             return False
 
-    # Recupera un dispositivo por su id
     def leer(self, id_dispositivo: int) -> Optional[DispositivoHogar]:
         query = """
         SELECT id_hogar, nombre_dispositivo, tipo_dispositivo, marca_dispositivo, 
@@ -42,7 +50,7 @@ class DispositivoDAO(IDispositivoDAO):
         WHERE id_dispositivo = %s
         """
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query, (int(id_dispositivo),))
                 row = cursor.fetchone()
                 if row:
@@ -57,9 +65,9 @@ class DispositivoDAO(IDispositivoDAO):
                         float(cast(float, consumo)),
                         bool(es_esencial)
                     )
+                print("No se encontró el dispositivo solicitado.")
                 return None
 
-    # Actualiza los datos de un dispositivo existente
     def actualizar(self, dispositivo: DispositivoHogar) -> bool:
         query = """
         UPDATE dispositivos_hogar
@@ -68,36 +76,48 @@ class DispositivoDAO(IDispositivoDAO):
         WHERE id_dispositivo = %s
         """
         try:
+            nombre = dispositivo.nombre.strip()
+            tipo = dispositivo.tipo.strip()
+            marca = dispositivo.marca.strip() if dispositivo.marca else None
+            estado = dispositivo.estado_dispositivo.strip()
             with DatabaseConnection().connect() as conn:
-                with conn.cursor() as cursor:
+                with conn.cursor(buffered=True) as cursor:
                     cursor.execute(query, (
                         int(dispositivo.id_hogar),
-                        str(dispositivo.nombre),
-                        str(dispositivo.tipo),
-                        str(dispositivo.marca) if dispositivo.marca is not None else None,
-                        str(dispositivo.estado_dispositivo),
+                        nombre,
+                        tipo,
+                        marca,
+                        estado,
                         float(dispositivo.consumo_energetico),
                         bool(dispositivo.es_esencial),
                         int(dispositivo.id_dispositivo)
                     ))
                     conn.commit()
-                    return cursor.rowcount > 0
+                    if cursor.rowcount > 0:
+                        print("Dispositivo actualizado correctamente.")
+                        return True
+                    print("No se encontró el dispositivo para actualizar.")
+                    return False
         except Exception:
+            print("Error al actualizar el dispositivo.")
             return False
 
-    # Elimina un dispositivo por su id
     def eliminar(self, id_dispositivo: int) -> bool:
         query = "DELETE FROM dispositivos_hogar WHERE id_dispositivo = %s"
         try:
             with DatabaseConnection().connect() as conn:
-                with conn.cursor() as cursor:
+                with conn.cursor(buffered=True) as cursor:
                     cursor.execute(query, (int(id_dispositivo),))
                     conn.commit()
-                    return cursor.rowcount > 0
+                    if cursor.rowcount > 0:
+                        print("Dispositivo eliminado correctamente.")
+                        return True
+                    print("No se encontró el dispositivo para eliminar.")
+                    return False
         except Exception:
+            print("Error al eliminar el dispositivo.")
             return False
 
-    # Devuelve todos los dispositivos registrados
     def obtener_todos(self) -> List[DispositivoHogar]:
         query = """
         SELECT id_dispositivo, id_hogar, nombre_dispositivo, tipo_dispositivo, 
@@ -106,7 +126,7 @@ class DispositivoDAO(IDispositivoDAO):
         """
         dispositivos: List[DispositivoHogar] = []
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query)
                 for row in cursor.fetchall():
                     raw_id_dispositivo, raw_id_hogar, nombre, tipo, marca, estado, consumo, es_esencial = row
@@ -122,7 +142,6 @@ class DispositivoDAO(IDispositivoDAO):
                     ))
         return dispositivos
 
-    # Lista todos los dispositivos de un hogar específico
     def listar_por_hogar(self, id_hogar: int) -> List[DispositivoHogar]:
         query = """
         SELECT id_dispositivo, id_hogar, nombre_dispositivo, tipo_dispositivo, 
@@ -132,7 +151,7 @@ class DispositivoDAO(IDispositivoDAO):
         """
         dispositivos: List[DispositivoHogar] = []
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query, (int(id_hogar),))
                 for row in cursor.fetchall():
                     raw_id_dispositivo, raw_id_hogar, nombre, tipo, marca, estado, consumo, es_esencial = row
@@ -151,11 +170,10 @@ class DispositivoDAO(IDispositivoDAO):
     def obtener_siguiente_id(self) -> int:
         query = "SELECT COALESCE(MAX(id_dispositivo), 0) + 1 FROM dispositivos_hogar"
         with DatabaseConnection().connect() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(buffered=True) as cursor:
                 cursor.execute(query)
                 result = cursor.fetchone()
                 if result is not None:
                     (next_id,) = result
                     return cast(int, next_id)
                 return 1
-            

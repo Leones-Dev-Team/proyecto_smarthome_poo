@@ -14,40 +14,43 @@ USE smarthome;
 -- Reemplaza el campo "dispositivos_activos" eliminado de dispositivos_control
 SELECT 
     u.id_usuario,
-    u.mail,
+    p.mail,
     COUNT(CASE WHEN dh.estado_dispositivo = 'encendido' THEN 1 END) as dispositivos_activos
 FROM usuarios u
+JOIN perfiles p ON u.id_perfil = p.id_perfil
 LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
-GROUP BY u.id_usuario, u.mail
+GROUP BY u.id_usuario, p.mail
 ORDER BY u.id_usuario;
 
 -- Consulta 2: Contar dispositivos apagados por usuario
 -- Reemplaza el campo "dispositivos_apagados" eliminado de dispositivos_control
 SELECT 
     u.id_usuario,
-    u.mail,
+    p.mail,
     COUNT(CASE WHEN dh.estado_dispositivo = 'apagado' THEN 1 END) as dispositivos_apagados
 FROM usuarios u
+JOIN perfiles p ON u.id_perfil = p.id_perfil
 LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
-GROUP BY u.id_usuario, u.mail
+GROUP BY u.id_usuario, p.mail
 ORDER BY u.id_usuario;
 
 -- Consulta 3: Contar dispositivos en modo ahorro por usuario
 -- Reemplaza el campo "dispositivos_en_ahorro" eliminado de dispositivos_control
 SELECT 
     u.id_usuario,
-    u.mail,
+    p.mail,
     COUNT(CASE WHEN dh.estado_dispositivo = 'ahorro' THEN 1 END) as dispositivos_en_ahorro
 FROM usuarios u
+JOIN perfiles p ON u.id_perfil = p.id_perfil
 LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
-GROUP BY u.id_usuario, u.mail
+GROUP BY u.id_usuario, p.mail
 ORDER BY u.id_usuario;
 
 -- Consulta 4: Resumen completo de estados de dispositivos por usuario
 -- Combina toda la información que antes se almacenaba como datos derivados
 SELECT 
     u.id_usuario,
-    u.mail,
+    p.mail,
     u.rol,
     dc.hora_de_conexion,
     COUNT(dh.id_dispositivo) as total_dispositivos,
@@ -56,9 +59,10 @@ SELECT
     COUNT(CASE WHEN dh.estado_dispositivo = 'ahorro' THEN 1 END) as dispositivos_en_ahorro,
     SUM(CASE WHEN dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_total_activo
 FROM usuarios u
+JOIN perfiles p ON u.id_perfil = p.id_perfil
 LEFT JOIN dispositivos_control dc ON u.id_usuario = dc.id_usuario_conectado
 LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
-GROUP BY u.id_usuario, u.mail, u.rol, dc.hora_de_conexion
+GROUP BY u.id_usuario, p.mail, u.rol, dc.hora_de_conexion
 ORDER BY u.id_usuario;
 
 -- ============================================
@@ -143,6 +147,42 @@ LEFT JOIN dispositivos_control dc ON u.id_usuario = dc.id_usuario_conectado
 GROUP BY u.rol
 ORDER BY cantidad_usuarios DESC;
 
+-- Consulta 11: Listar usuarios con su perfil y hogar asociado
+SELECT 
+    u.id_usuario,
+    p.nombre,
+    p.mail,
+    h.ubicacion as hogar,
+    u.rol
+FROM usuarios u
+JOIN perfiles p ON u.id_perfil = p.id_perfil
+JOIN hogares h ON u.id_hogar = h.id_hogar
+ORDER BY h.ubicacion, p.nombre;
+
+-- Consulta 12: Detectar si existen correos duplicados en perfiles
+SELECT p.mail
+FROM perfiles p
+WHERE p.mail IN (
+    SELECT mail
+    FROM perfiles
+    GROUP BY mail
+    HAVING COUNT(*) > 1
+);
+
+-- Consulta 13: Hogares con más dispositivos que el promedio general
+SELECT h.id_hogar, h.ubicacion, COUNT(dh.id_dispositivo) as total_dispositivos
+FROM hogares h
+JOIN dispositivos_hogar dh ON h.id_hogar = dh.id_hogar
+GROUP BY h.id_hogar, h.ubicacion
+HAVING COUNT(dh.id_dispositivo) > (
+    SELECT AVG(cantidad) 
+    FROM (
+        SELECT COUNT(*) as cantidad
+        FROM dispositivos_hogar
+        GROUP BY id_hogar
+    ) sub
+);
+
 -- ============================================
 -- VISTAS PARA FACILITAR CONSULTAS RECURRENTES
 -- ============================================
@@ -151,7 +191,7 @@ ORDER BY cantidad_usuarios DESC;
 CREATE OR REPLACE VIEW vista_resumen_dispositivos_usuario AS
 SELECT 
     u.id_usuario,
-    u.mail,
+    p.mail,
     u.rol,
     COUNT(dh.id_dispositivo) as total_dispositivos,
     COUNT(CASE WHEN dh.estado_dispositivo = 'encendido' THEN 1 END) as dispositivos_activos,
@@ -159,8 +199,9 @@ SELECT
     COUNT(CASE WHEN dh.estado_dispositivo = 'ahorro' THEN 1 END) as dispositivos_en_ahorro,
     SUM(CASE WHEN dh.estado_dispositivo = 'encendido' THEN dh.consumo_energetico ELSE 0 END) as consumo_actual
 FROM usuarios u
+JOIN perfiles p ON u.id_perfil = p.id_perfil
 LEFT JOIN dispositivos_hogar dh ON u.id_usuario = dh.id_usuario_conectado
-GROUP BY u.id_usuario, u.mail, u.rol;
+GROUP BY u.id_usuario, p.mail, u.rol;
 
 -- Vista 2: Automatizaciones activas con información del dispositivo
 CREATE OR REPLACE VIEW vista_automatizaciones_activas AS

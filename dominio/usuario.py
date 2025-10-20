@@ -43,13 +43,18 @@ class Usuario:
     def edad(self) -> int:
         return self.__edad
 
+    @property
+    def clave(self) -> str:
+        """Devuelve la clave del usuario para persistencia."""
+        return self.__clave
+
     # --- Métodos funcionales ---
     def verificar_clave(self, clave: str) -> bool:
         return clave == self.__clave
 
     def cambiar_clave(self, nueva_clave: str):
         if not nueva_clave:
-            raise ValueError("La nueva clave no puede estar vacia.")
+            raise ValueError("La nueva clave no puede estar vacía.")
         self.__clave = nueva_clave
         self.__perfil.registrar_actividad("Cambio de clave de usuario")
 
