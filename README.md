@@ -32,6 +32,7 @@ El proyecto aplica **Programación Orientada a Objetos (POO)** y el patrón **DA
 proyecto_smarthome_poo/
 │
 ├── main.py
+├── .env.example --> db_connection.env
 │
 ├── dominio/
 │   ├── usuario.py
@@ -96,7 +97,7 @@ proyecto_smarthome_poo/
 ## 🧠 Principios Aplicados
 
 * **Encapsulamiento:**  
-  Todos los atributos internos son privados (`__atributo`) con acceso controlado mediante `@property` y validaciones en los setters.
+  Todos los atributos internos son privados (`__atributo`) con acceso controlado mediante `@property` y validaciones en los `@setter`.
 
 * **SRP (Responsabilidad Única):**  
   Cada clase tiene una única responsabilidad (ej. `Usuario` gestiona credenciales y rol, `Perfil` maneja datos personales, `DAO` maneja persistencia).
@@ -120,7 +121,7 @@ En EV6 se mantuvieron en verde, garantizando compatibilidad con las nuevas clase
 Para ejecutarlas:
 
 ```bash
-pytest
+pytest -v
 ```
 
 ---
@@ -135,6 +136,24 @@ Los modelos relacionales y scripts SQL (`init.sql` y `queries.sql`) se encuentra
 ```
 
 > 📄 **Nota:** cada carpeta incluye un `README.md` con instrucciones para ejecutar los scripts en un DBMS online.
+
+---
+
+## ⚙️ Configuración local con `.env`
+
+Si desea probar el proyecto en su entorno local con MySQL, debe configurar las credenciales de conexión:
+
+1. Renombrar el archivo **`.env.example`** a **`db_connection.env`**
+2. Modificar su contenido con los datos de su instalación de MySQL:
+
+```env
+DB_HOST=localhost
+DB_USER=tu_usuario
+DB_PASSWORD=tu_contraseña
+DB_DATABASE=smarthome
+```
+
+Esto permitirá que la clase `DatabaseConnection` utilice las variables de entorno correctas para conectarse a la base de datos.
 
 ---
 

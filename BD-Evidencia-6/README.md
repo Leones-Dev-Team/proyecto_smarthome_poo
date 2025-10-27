@@ -74,9 +74,8 @@ Verificar en la consola de salida que las tablas se crean correctamente y que la
 
 Si desea probar el proyecto en su entorno local con MySQL, debe configurar las credenciales de conexión:
 
-1. Copiar el archivo **`.env.example`** que se encuentra en el repositorio.  
-2. Renombrarlo a **`.env`**.  
-3. Modificar su contenido con los datos de su instalación de MySQL:
+1. Renombrar el archivo **`.env.example`** a **`db_connection.env`**
+2. Modificar su contenido con los datos de su instalación de MySQL:
 
 ```env
 DB_HOST=localhost
